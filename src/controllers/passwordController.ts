@@ -9,7 +9,7 @@ class PasswordController {
     res: Response
   ) => {
     try {
-      if (!req.user || !req.user.userId) {
+      if (!req.user) {
         res.status(401).json({ error: "Unauthorized" });
         return;
       }
