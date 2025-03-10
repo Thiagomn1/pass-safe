@@ -31,6 +31,7 @@ class UserController {
     try {
       if (await User.findOne({ username })) {
         res.status(400).json({ error: "User already exists" });
+        return;
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -58,7 +59,7 @@ class UserController {
         expiresIn: "1h",
       });
 
-      res.json({ token });
+      res.status(200).json({ token });
     } catch (error) {
       res.status(500).json({ error: "Internal server error" });
     }

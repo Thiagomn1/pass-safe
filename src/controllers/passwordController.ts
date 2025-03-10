@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import passwordGenerator from "../utils/passwordGenerator";
 import User from "../models/User";
 import { AuthenticatedRequest } from "../types/types";
