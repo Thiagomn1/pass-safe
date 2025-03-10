@@ -9,12 +9,7 @@ const SECRET_KEY = process.env.JWT_SECRET;
 class UserController {
   static getUser = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      if (!req.user) {
-        res.status(401).json({ error: "Unauthorized" });
-        return;
-      }
-
-      const user = await User.findById(req.user.userId).select("-password");
+      const user = await User.findById(req?.user?.userId).select("-password");
 
       if (!user) {
         res.status(404).json({ error: "User not found" });

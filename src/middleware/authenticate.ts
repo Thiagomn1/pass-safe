@@ -19,6 +19,7 @@ const authenticate = (
 
     if (typeof decoded !== "object" || !decoded.userId || !decoded.username) {
       res.status(400).json({ error: "Invalid token payload" });
+      return;
     }
 
     req.user = {

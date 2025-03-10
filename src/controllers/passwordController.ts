@@ -9,12 +9,7 @@ class PasswordController {
     res: Response
   ) => {
     try {
-      if (!req.user) {
-        res.status(401).json({ error: "Unauthorized" });
-        return;
-      }
-
-      const user = await User.findById(req.user.userId)
+      const user = await User.findById(req?.user?.userId)
         .select("savedPasswords")
         .lean();
 
@@ -51,14 +46,9 @@ class PasswordController {
         .json({ error: "Invalid site. Provide a valid site URL or name." });
     }
 
-    if (!req.user || !req.user.userId) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
     const password = passwordGenerator(length);
 
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(req?.user?.userId);
 
     if (!user) {
       res.status(404).json({ error: "User not found" });
