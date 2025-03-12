@@ -2,6 +2,7 @@ import { Response } from "express";
 import passwordGenerator from "../utils/passwordGenerator";
 import User from "../models/User";
 import { AuthenticatedRequest } from "../types/types";
+import { decryptPassword, encryptPassword } from "../utils/encryption";
 
 class PasswordController {
   static getSavedPasswords = async (
@@ -17,12 +18,14 @@ class PasswordController {
         res.status(404).json({ error: "User not found" });
         return;
       }
-
-      const passwordsWithoutId = user.savedPasswords.map(
-        ({ _id, ...password }) => password
+      const decryptedPasswords = user.savedPasswords.map(
+        ({ _id, site, password }) => ({
+          site,
+          password: decryptPassword(password), // Decrypt password before returning
+        })
       );
 
-      res.status(200).json(passwordsWithoutId);
+      res.status(200).json(decryptedPasswords);
     } catch (error) {
       res.status(500).json({ error: "Internal server error" });
     }
@@ -47,6 +50,7 @@ class PasswordController {
     }
 
     const password = passwordGenerator(length);
+    const encryptedPassword = encryptPassword(password);
 
     const user = await User.findById(req?.user?.userId);
 
@@ -55,7 +59,7 @@ class PasswordController {
       return;
     }
 
-    user.savedPasswords.push({ site, password });
+    user.savedPasswords.push({ site, password: encryptedPassword });
     await user.save();
 
     res.status(201).json({ site, password });
