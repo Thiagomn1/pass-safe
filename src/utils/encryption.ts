@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
-const SECRET_KEY = process.env.ENCRYPTION_SECRET!; // Must be 32 bytes
-const IV_LENGTH = 16; // AES requires a 16-byte IV
+const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
+const IV_LENGTH = 16;
 
 export const encryptPassword = (password: string): string => {
   const iv = crypto.randomBytes(IV_LENGTH);
