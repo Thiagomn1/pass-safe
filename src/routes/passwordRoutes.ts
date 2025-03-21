@@ -8,6 +8,7 @@ const routes = express.Router();
 routes.use(authenticate);
 
 routes.get("/", checkAuthenticated, PasswordController.getSavedPasswords);
+routes.get("/:site", checkAuthenticated, PasswordController.getSitePassword);
 routes.post(
   "/generate",
   checkAuthenticated,
