@@ -2,7 +2,7 @@
 
 This is a Restful API that generates secure passwords for the requested sites, encrypts them and saves them to your personal account
 
-## How to run
+# How to run
 
 1. Create the docker container for the MongoDB Database by running `docker-compose up -d` (The default user and password for the database is admin)
 
