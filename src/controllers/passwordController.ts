@@ -21,7 +21,7 @@ class PasswordController {
       const decryptedPasswords = user.savedPasswords.map(
         ({ _id, site, password }) => ({
           site,
-          password: decryptPassword(password), // Decrypt password before returning
+          password: decryptPassword(password),
         })
       );
 
@@ -68,12 +68,6 @@ class PasswordController {
       res
         .status(400)
         .json({ error: "Invalid length. Provide a positive integer." });
-    }
-
-    if (!site || typeof site !== "string") {
-      res
-        .status(400)
-        .json({ error: "Invalid site. Provide a valid site URL or name." });
     }
 
     const password = passwordGenerator(length);
