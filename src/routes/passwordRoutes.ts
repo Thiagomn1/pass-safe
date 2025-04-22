@@ -14,5 +14,10 @@ routes.post(
   checkAuthenticated,
   PasswordController.generatePassword
 );
+routes.put(
+  "/update",
+  checkAuthenticated,
+  PasswordController.updateSitePassword
+);
 
 export default routes;
