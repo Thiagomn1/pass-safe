@@ -136,6 +136,43 @@ class PasswordController {
       res.status(500).json({ error: "Internal server error" });
     }
   };
+
+  static deleteSitePassword = async (
+    req: AuthenticatedRequest,
+    res: Response
+  ) => {
+    try {
+      const { site } = req.params;
+
+      if (!site || typeof site !== "string") {
+        res.status(400).json({ error: "Invalid site." });
+        return;
+      }
+
+      const user = await User.findById(req?.user?.userId);
+
+      if (!user) {
+        res.status(404).json({ error: "User not found" });
+        return;
+      }
+
+      const entryToRemove = user.savedPasswords.find((entry) =>
+        entry.site.includes(site)
+      );
+
+      if (!entryToRemove) {
+        res.status(404).json({ error: "Password for site not found." });
+        return;
+      }
+
+      user.savedPasswords.pull(entryToRemove._id);
+      await user.save();
+
+      res.status(200).json({ message: `Password for '${site}' deleted.` });
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  };
 }
 
 export default PasswordController;

@@ -20,4 +20,10 @@ routes.put(
   PasswordController.updateSitePassword
 );
 
+routes.delete(
+  "/:site",
+  checkAuthenticated,
+  PasswordController.deleteSitePassword
+);
+
 export default routes;
