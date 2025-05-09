@@ -202,4 +202,113 @@ describe("PasswordController", () => {
       expect(res.status).toHaveBeenCalledWith(404);
     });
   });
+
+  describe("deleteSitePassword", () => {
+    const mockResponse = () => {
+      const res: any = {};
+      res.status = jest.fn().mockReturnValue(res);
+      res.json = jest.fn().mockReturnValue(res);
+      return res;
+    };
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should delete a password for the given site", async () => {
+      const mockSave = jest.fn();
+      const pull = jest.fn();
+
+      const savedPasswords = [
+        { _id: "abc123", site: "netflix.com", password: "encrypted" },
+        { _id: "def456", site: "gmail.com", password: "encrypted2" },
+      ];
+
+      (savedPasswords as any).pull = jest.fn();
+
+      const mockUser = {
+        savedPasswords: Object.assign([...savedPasswords], { pull }),
+        save: mockSave,
+      };
+
+      (User.findById as jest.Mock).mockResolvedValue(mockUser);
+
+      const req = {
+        user: { userId: "123" },
+        params: { site: "netflix" },
+      } as any;
+
+      const res = mockResponse();
+
+      await PasswordController.deleteSitePassword(req, res);
+
+      expect(User.findById).toHaveBeenCalledWith("123");
+      expect(pull).toHaveBeenCalledWith("abc123");
+      expect(mockSave).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Password for 'netflix' deleted.",
+      });
+    });
+
+    it("should return 404 if user not found", async () => {
+      (User.findById as jest.Mock).mockResolvedValue(null);
+
+      const req = {
+        user: { userId: "123" },
+        params: { site: "netflix" },
+      } as any;
+
+      const res = mockResponse();
+
+      await PasswordController.deleteSitePassword(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+    });
+
+    it("should return 404 if site not found", async () => {
+      const savedPasswords = [
+        { _id: "def456", site: "gmail.com", password: "encrypted2" },
+      ];
+
+      // Manually cast and attach `.pull` for mocking
+      (savedPasswords as any).pull = jest.fn();
+
+      const mockUser = {
+        savedPasswords: savedPasswords as any,
+        save: jest.fn(),
+      };
+
+      (User.findById as jest.Mock).mockResolvedValue(mockUser);
+
+      const req = {
+        user: { userId: "123" },
+        params: { site: "netflix" },
+      } as any;
+
+      const res = mockResponse();
+
+      await PasswordController.deleteSitePassword(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Password for site not found.",
+      });
+    });
+
+    it("should return 400 if site param is missing or invalid", async () => {
+      const req = {
+        user: { userId: "123" },
+        params: { site: "" },
+      } as any;
+
+      const res = mockResponse();
+
+      await PasswordController.deleteSitePassword(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ error: "Invalid site." });
+    });
+  });
 });
