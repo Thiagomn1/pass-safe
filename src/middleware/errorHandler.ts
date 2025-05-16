@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import BaseError from "../errors/BaseError";
 import CastError from "../errors/CastError";
 import ValidationError from "../errors/ValidationError";
+import SyntaxError from "../errors/SyntaxError";
 
 const errorHandler = (
   err: unknown,
@@ -17,6 +18,8 @@ const errorHandler = (
   } else if (err instanceof mongoose.Error.ValidationError) {
     new ValidationError(err).sendResponse(res);
   } else if (err instanceof BaseError) {
+    err.sendResponse(res);
+  } else if (err instanceof SyntaxError && "body" in err) {
     err.sendResponse(res);
   } else {
     new BaseError().sendResponse(res);
