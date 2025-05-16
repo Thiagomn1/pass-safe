@@ -3,6 +3,7 @@ import express from "express";
 import passwordRoutes from "./routes/passwordRoutes";
 import userRoutes from "./routes/userRoutes";
 import connectDB from "./config/dbConnect";
+import errorHandler from "./middleware/errorHandler";
 
 const PORT = 3000;
 
@@ -10,6 +11,7 @@ const app = express();
 app.use(express.json());
 app.use("/auth", userRoutes);
 app.use("/password", passwordRoutes);
+app.use(errorHandler);
 
 app.get("/", (req, res) => {
   res.send("Password Manager API");

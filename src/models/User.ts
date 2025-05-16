@@ -4,7 +4,7 @@ const PasswordSchema = new mongoose.Schema({
   site: {
     type: String,
     required: [true, "Site is required"],
-    trim: true, // Removes extra spaces
+    trim: true,
   },
   password: {
     type: String,

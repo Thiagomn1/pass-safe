@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { NextFunction, Response } from "express";
 import passwordGenerator from "../utils/passwordGenerator";
 import User from "../models/User";
 import { AuthenticatedRequest } from "../types/types";
@@ -7,7 +7,8 @@ import { decryptPassword, encryptPassword } from "../utils/encryption";
 class PasswordController {
   static getSavedPasswords = async (
     req: AuthenticatedRequest,
-    res: Response
+    res: Response,
+    next: NextFunction
   ) => {
     try {
       const user = await User.findById(req?.user?.userId)
@@ -60,35 +61,41 @@ class PasswordController {
 
   static generatePassword = async (
     req: AuthenticatedRequest,
-    res: Response
+    res: Response,
+    next: NextFunction
   ) => {
-    const { length, site } = req.body;
+    try {
+      const { length, site } = req.body;
 
-    if (!length || isNaN(length) || length <= 0) {
-      res
-        .status(400)
-        .json({ error: "Invalid length. Provide a positive integer." });
+      if (!length || isNaN(length) || length <= 0) {
+        res
+          .status(400)
+          .json({ error: "Invalid length. Provide a positive integer." });
+      }
+
+      const password = passwordGenerator(length);
+      const encryptedPassword = encryptPassword(password);
+
+      const user = await User.findById(req?.user?.userId);
+
+      if (!user) {
+        res.status(404).json({ error: "User not found" });
+        return;
+      }
+
+      user.savedPasswords.push({ site, password: encryptedPassword });
+      await user.save();
+
+      res.status(201).json({ site, password });
+    } catch (error) {
+      next(error);
     }
-
-    const password = passwordGenerator(length);
-    const encryptedPassword = encryptPassword(password);
-
-    const user = await User.findById(req?.user?.userId);
-
-    if (!user) {
-      res.status(404).json({ error: "User not found" });
-      return;
-    }
-
-    user.savedPasswords.push({ site, password: encryptedPassword });
-    await user.save();
-
-    res.status(201).json({ site, password });
   };
 
   static updateSitePassword = async (
     req: AuthenticatedRequest,
-    res: Response
+    res: Response,
+    next: NextFunction
   ) => {
     try {
       const { site, length } = req.body;
@@ -133,13 +140,14 @@ class PasswordController {
         newPassword,
       });
     } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
+      next(error);
     }
   };
 
   static deleteSitePassword = async (
     req: AuthenticatedRequest,
-    res: Response
+    res: Response,
+    next: NextFunction
   ) => {
     try {
       const { site } = req.params;
@@ -170,7 +178,7 @@ class PasswordController {
 
       res.status(200).json({ message: `Password for '${site}' deleted.` });
     } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
+      next(error);
     }
   };
 }

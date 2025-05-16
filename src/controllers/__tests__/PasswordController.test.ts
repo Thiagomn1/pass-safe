@@ -7,6 +7,7 @@ import { Request, Response } from "express";
 jest.mock("../../models/User");
 jest.mock("../../utils/encryption");
 jest.mock("../../utils/passwordGenerator");
+const next = jest.fn();
 
 const mockResponse = () => {
   const res: Partial<Response> = {};
@@ -38,7 +39,7 @@ describe("PasswordController", () => {
 
       (decryptPassword as jest.Mock).mockReturnValue("decrypted");
 
-      await PasswordController.getSavedPasswords(req, res);
+      await PasswordController.getSavedPasswords(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith([
@@ -55,7 +56,7 @@ describe("PasswordController", () => {
         lean: jest.fn().mockResolvedValue(null),
       });
 
-      await PasswordController.getSavedPasswords(req, res);
+      await PasswordController.getSavedPasswords(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(404);
     });
@@ -67,7 +68,7 @@ describe("PasswordController", () => {
         select: jest.fn().mockReturnThis(),
         lean: jest.fn().mockRejectedValue(new Error()),
       });
-      await PasswordController.getSavedPasswords(req, res);
+      await PasswordController.getSavedPasswords(req, res, next);
       expect(res.status).toHaveBeenCalledWith(500);
     });
   });
@@ -89,7 +90,7 @@ describe("PasswordController", () => {
       (passwordGenerator as jest.Mock).mockReturnValue("genPassword");
       (encryptPassword as jest.Mock).mockReturnValue("encPassword");
 
-      await PasswordController.generatePassword(req, res);
+      await PasswordController.generatePassword(req, res, next);
 
       expect(fakeUser.savedPasswords).toEqual([
         { site: "example.com", password: "encPassword" },
@@ -105,7 +106,7 @@ describe("PasswordController", () => {
       const req = { body: { length: -1 }, user: { userId: "123" } } as any;
       const res = mockResponse();
 
-      await PasswordController.generatePassword(req, res);
+      await PasswordController.generatePassword(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(400);
     });
@@ -174,7 +175,7 @@ describe("PasswordController", () => {
       (passwordGenerator as jest.Mock).mockReturnValue("newPassword");
       (encryptPassword as jest.Mock).mockReturnValue("newEncrypted");
 
-      await PasswordController.updateSitePassword(req, res);
+      await PasswordController.updateSitePassword(req, res, next);
 
       expect(passwordEntry.password).toBe("newEncrypted");
       expect(fakeUser.save).toHaveBeenCalled();
@@ -197,7 +198,7 @@ describe("PasswordController", () => {
         save: jest.fn(),
       });
 
-      await PasswordController.updateSitePassword(req, res);
+      await PasswordController.updateSitePassword(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(404);
     });
@@ -240,7 +241,7 @@ describe("PasswordController", () => {
 
       const res = mockResponse();
 
-      await PasswordController.deleteSitePassword(req, res);
+      await PasswordController.deleteSitePassword(req, res, next);
 
       expect(User.findById).toHaveBeenCalledWith("123");
       expect(pull).toHaveBeenCalledWith("abc123");
@@ -261,7 +262,7 @@ describe("PasswordController", () => {
 
       const res = mockResponse();
 
-      await PasswordController.deleteSitePassword(req, res);
+      await PasswordController.deleteSitePassword(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
@@ -272,7 +273,6 @@ describe("PasswordController", () => {
         { _id: "def456", site: "gmail.com", password: "encrypted2" },
       ];
 
-      // Manually cast and attach `.pull` for mocking
       (savedPasswords as any).pull = jest.fn();
 
       const mockUser = {
@@ -289,7 +289,7 @@ describe("PasswordController", () => {
 
       const res = mockResponse();
 
-      await PasswordController.deleteSitePassword(req, res);
+      await PasswordController.deleteSitePassword(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({
@@ -305,7 +305,7 @@ describe("PasswordController", () => {
 
       const res = mockResponse();
 
-      await PasswordController.deleteSitePassword(req, res);
+      await PasswordController.deleteSitePassword(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ error: "Invalid site." });
