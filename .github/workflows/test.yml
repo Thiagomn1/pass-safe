@@ -23,10 +23,3 @@ jobs:
 
       - name: Run tests
         run: npx jest
-
-      - name: Upload coverage report (optional)
-        if: success()
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: coverage/
