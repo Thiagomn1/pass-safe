@@ -1,6 +1,6 @@
 import BaseError from "./BaseError";
 
-class SyntaxError extends BaseError {
+class JsonSyntaxError extends BaseError {
   constructor(
     message: string = "Malformed JSON in request body",
     statusCode: number = 400
@@ -9,4 +9,4 @@ class SyntaxError extends BaseError {
   }
 }
 
-export default SyntaxError;
+export default JsonSyntaxError;

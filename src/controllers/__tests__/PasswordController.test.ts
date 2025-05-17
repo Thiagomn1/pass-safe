@@ -102,13 +102,21 @@ describe("PasswordController", () => {
       });
     });
 
-    it("should return 400 on invalid length", async () => {
-      const req = { body: { length: -1 }, user: { userId: "123" } } as any;
+    it("should call next with ZodError on invalid length", async () => {
+      const req = {
+        body: { length: -1, site: "example.com" },
+        user: { userId: "123" },
+      } as any;
+
       const res = mockResponse();
+      const next = jest.fn();
 
       await PasswordController.generatePassword(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
+      expect(next).toHaveBeenCalled();
+      const errorArg = next.mock.calls[0][0];
+      expect(errorArg).toHaveProperty("issues");
+      expect(errorArg.name).toBe("ZodError");
     });
   });
 
@@ -307,8 +315,10 @@ describe("PasswordController", () => {
 
       await PasswordController.deleteSitePassword(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: "Invalid site." });
+      expect(next).toHaveBeenCalled();
+      const errorArg = next.mock.calls[0][0];
+      expect(errorArg).toHaveProperty("issues");
+      expect(errorArg.name).toBe("ZodError");
     });
   });
 });
