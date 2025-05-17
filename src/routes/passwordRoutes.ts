@@ -2,28 +2,40 @@ import express from "express";
 import PasswordController from "../controllers/passwordController";
 import authenticate from "../middleware/authenticate";
 import checkAuthenticated from "../middleware/checkAuthenticated";
+import { validate } from "../middleware/validate";
+import {
+  generatePasswordSchema,
+  updatePasswordSchema,
+  siteParamSchema,
+} from "../validation/passwordSchemas";
 
 const routes = express.Router();
 
 routes.use(authenticate);
 
 routes.get("/", checkAuthenticated, PasswordController.getSavedPasswords);
-routes.get("/:site", checkAuthenticated, PasswordController.getSitePassword);
+
+routes.get(
+  "/:site",
+  validate(siteParamSchema),
+  PasswordController.getSitePassword
+);
+
 routes.post(
   "/generate",
-  checkAuthenticated,
+  validate(generatePasswordSchema),
   PasswordController.generatePassword
 );
+
 routes.put(
   "/update",
-  checkAuthenticated,
+  validate(updatePasswordSchema),
   PasswordController.updateSitePassword
 );
 
 routes.delete(
   "/:site",
-  checkAuthenticated,
+  validate(siteParamSchema),
   PasswordController.deleteSitePassword
 );
-
 export default routes;
