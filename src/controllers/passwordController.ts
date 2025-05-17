@@ -3,6 +3,11 @@ import passwordGenerator from "../utils/passwordGenerator";
 import User from "../models/User";
 import { AuthenticatedRequest } from "../types/types";
 import { decryptPassword, encryptPassword } from "../utils/encryption";
+import {
+  deleteSitePasswordSchema,
+  generatePasswordParseSchema,
+  generatePasswordSchema,
+} from "../validation/passwordSchemas";
 
 class PasswordController {
   static getSavedPasswords = async (
@@ -65,7 +70,7 @@ class PasswordController {
     next: NextFunction
   ) => {
     try {
-      const { length, site } = req.body;
+      const { length, site } = generatePasswordParseSchema.parse(req.body);
 
       const password = passwordGenerator(length);
       const encryptedPassword = encryptPassword(password);
@@ -132,7 +137,7 @@ class PasswordController {
     next: NextFunction
   ) => {
     try {
-      const { site } = req.params;
+      const { site } = deleteSitePasswordSchema.parse(req.params);
 
       const user = await User.findById(req?.user?.userId);
 

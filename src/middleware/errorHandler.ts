@@ -3,7 +3,9 @@ import mongoose from "mongoose";
 import BaseError from "../errors/BaseError";
 import CastError from "../errors/CastError";
 import ValidationError from "../errors/ValidationError";
-import SyntaxError from "../errors/SyntaxError";
+import JsonSyntaxError from "../errors/JsonSyntaxError";
+import { ZodError as RealZodError } from "zod";
+import ZodError from "../errors/ZodError";
 
 const errorHandler = (
   err: unknown,
@@ -17,9 +19,13 @@ const errorHandler = (
     return;
   } else if (err instanceof mongoose.Error.ValidationError) {
     new ValidationError(err).sendResponse(res);
-  } else if (err instanceof BaseError) {
-    err.sendResponse(res);
   } else if (err instanceof SyntaxError && "body" in err) {
+    new JsonSyntaxError().sendResponse(res);
+    return;
+  } else if (err instanceof RealZodError) {
+    new ZodError(err.errors).sendResponse(res);
+    return;
+  } else if (err instanceof BaseError) {
     err.sendResponse(res);
   } else {
     new BaseError().sendResponse(res);
