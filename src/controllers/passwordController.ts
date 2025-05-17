@@ -67,12 +67,6 @@ class PasswordController {
     try {
       const { length, site } = req.body;
 
-      if (!length || isNaN(length) || length <= 0) {
-        res
-          .status(400)
-          .json({ error: "Invalid length. Provide a positive integer." });
-      }
-
       const password = passwordGenerator(length);
       const encryptedPassword = encryptPassword(password);
 
@@ -99,18 +93,6 @@ class PasswordController {
   ) => {
     try {
       const { site, length } = req.body;
-
-      if (!site || typeof site !== "string") {
-        res.status(400).json({ error: "Invalid site." });
-        return;
-      }
-
-      if (!length || isNaN(length) || length <= 0) {
-        res
-          .status(400)
-          .json({ error: "Invalid length. Provide a positive integer." });
-        return;
-      }
 
       const user = await User.findById(req?.user?.userId);
 
@@ -151,11 +133,6 @@ class PasswordController {
   ) => {
     try {
       const { site } = req.params;
-
-      if (!site || typeof site !== "string") {
-        res.status(400).json({ error: "Invalid site." });
-        return;
-      }
 
       const user = await User.findById(req?.user?.userId);
 
