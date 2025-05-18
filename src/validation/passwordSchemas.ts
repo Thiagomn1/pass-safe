@@ -25,6 +25,6 @@ export const siteParamSchema = z.object({
   }),
 });
 
-export const deleteSitePasswordSchema = z.object({
+export const deleteSitePasswordParseSchema = z.object({
   site: z.string().min(1, "Site param is required"),
 });

@@ -4,9 +4,8 @@ import User from "../models/User";
 import { AuthenticatedRequest } from "../types/types";
 import { decryptPassword, encryptPassword } from "../utils/encryption";
 import {
-  deleteSitePasswordSchema,
+  deleteSitePasswordParseSchema,
   generatePasswordParseSchema,
-  generatePasswordSchema,
 } from "../validation/passwordSchemas";
 
 class PasswordController {
@@ -137,7 +136,7 @@ class PasswordController {
     next: NextFunction
   ) => {
     try {
-      const { site } = deleteSitePasswordSchema.parse(req.params);
+      const { site } = deleteSitePasswordParseSchema.parse(req.params);
 
       const user = await User.findById(req?.user?.userId);
 
