@@ -4,7 +4,7 @@ This is a FullStack application that generates secure passwords for the requeste
 
 # How to run
 
-## Frotend
+## Frontend
 
 1. Navigate to the frontend folder with `cd password-manager-frontend`
    
