@@ -12,8 +12,11 @@ const mockResponse = () => {
   const res: Partial<Response> = {};
   res.status = jest.fn().mockReturnValue(res);
   res.json = jest.fn().mockReturnValue(res);
+  res.cookie = jest.fn().mockReturnValue(res);
   return res as Response;
 };
+
+const next = jest.fn();
 
 describe("UserController", () => {
   afterEach(() => {
@@ -31,7 +34,7 @@ describe("UserController", () => {
       (bcrypt.hash as jest.Mock).mockResolvedValue("hashedpassword");
       (User.prototype.save as jest.Mock) = jest.fn();
 
-      await UserController.createUser(req, res);
+      await UserController.createUser(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
@@ -47,7 +50,7 @@ describe("UserController", () => {
 
       (User.findOne as jest.Mock).mockResolvedValue({});
 
-      await UserController.createUser(req, res);
+      await UserController.createUser(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
@@ -71,59 +74,59 @@ describe("UserController", () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       (jwt.sign as jest.Mock).mockReturnValue("token");
 
-      await UserController.loginUser(req, res);
+      await UserController.loginUser(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ token: "token" });
-    });
-
-    it("should return 401 on invalid credentials", async () => {
-      const req = {
-        body: { username: "test", password: "wrongpass" },
-      } as Request;
-      const res = mockResponse();
-
-      (User.findOne as jest.Mock).mockResolvedValue(null);
-
-      await UserController.loginUser(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Invalid credentials",
-      });
+      expect(res.json).toHaveBeenCalledWith({ message: "Login successful" });
     });
   });
 
-  describe("getUser", () => {
-    it("should return the user if found", async () => {
-      const req = {
-        user: { userId: "123" },
-      } as unknown as Request;
-      const res = mockResponse();
+  it("should return 401 on invalid credentials", async () => {
+    const req = {
+      body: { username: "test", password: "wrongpass" },
+    } as Request;
+    const res = mockResponse();
 
-      (User.findById as jest.Mock).mockReturnValue({
-        select: jest.fn().mockResolvedValue({ username: "test" }),
-      });
+    (User.findOne as jest.Mock).mockResolvedValue(null);
 
-      await UserController.getUser(req, res);
+    await UserController.loginUser(req, res, next);
 
-      expect(res.json).toHaveBeenCalledWith({ username: "test" });
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "Invalid credentials",
+    });
+  });
+});
+
+describe("getMe", () => {
+  it("should return the user if found", async () => {
+    const req = {
+      user: { userId: "123" },
+    } as unknown as Request;
+    const res = mockResponse();
+
+    (User.findById as jest.Mock).mockReturnValue({
+      select: jest.fn().mockResolvedValue({ username: "test" }),
     });
 
-    it("should return 404 if user not found", async () => {
-      const req = {
-        user: { userId: "123" },
-      } as unknown as Request;
-      const res = mockResponse();
+    await UserController.getMe(req, res, next);
 
-      (User.findById as jest.Mock).mockReturnValue({
-        select: jest.fn().mockResolvedValue(null),
-      });
+    expect(res.json).toHaveBeenCalledWith({ username: "test" });
+  });
 
-      await UserController.getUser(req, res);
+  it("should return 404 if user not found", async () => {
+    const req = {
+      user: { userId: "123" },
+    } as unknown as Request;
+    const res = mockResponse();
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+    (User.findById as jest.Mock).mockReturnValue({
+      select: jest.fn().mockResolvedValue(null),
     });
+
+    await UserController.getMe(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
   });
 });

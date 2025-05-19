@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import User from "../models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -7,21 +7,31 @@ import { AuthenticatedRequest } from "../types/types";
 const SECRET_KEY = process.env.JWT_SECRET;
 
 class UserController {
-  static getUser = async (req: AuthenticatedRequest, res: Response) => {
+  static getMe = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const user = await User.findById(req?.user?.userId).select("-password");
+      const userId = req?.user?.userId;
 
+      const user = await User.findById(userId).select("-password");
       if (!user) {
         res.status(404).json({ error: "User not found" });
+        return;
       }
 
-      res.json(user);
+      res.status(200).json(user);
     } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
+      next(error);
     }
   };
 
-  static createUser = async (req: Request, res: Response) => {
+  static createUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     const { username, password } = req.body;
     try {
       if (await User.findOne({ username })) {
@@ -36,11 +46,15 @@ class UserController {
 
       res.status(201).json({ message: "User created successfully" });
     } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
+      next(error);
     }
   };
 
-  static loginUser = async (req: Request, res: Response) => {
+  static loginUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const { username, password } = req.body;
       const user = await User.findOne({ username });
@@ -54,9 +68,36 @@ class UserController {
         expiresIn: "1h",
       });
 
-      res.status(200).json({ token });
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60 * 1000, // 1 hour
+        })
+        .status(200)
+        .json({ message: "Login successful" });
     } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
+      next(error);
+    }
+  };
+
+  static logoutUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      res
+        .clearCookie("token", {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+        })
+        .status(200)
+        .json({ message: "Logged out successfully" });
+    } catch (error) {
+      next(error);
     }
   };
 }
