@@ -7,6 +7,7 @@ import RequireAuth from "./components/RequireAuth";
 
 function App() {
   const { user, loading } = useAuth();
+  console.log(user);
 
   if (loading) return <div>Loading...</div>;
 

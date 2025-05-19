@@ -7,7 +7,7 @@ export function useAuth() {
 
   useEffect(() => {
     api
-      .get("/me")
+      .get("/auth/me")
       .then((res) => setUser(res.data))
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
