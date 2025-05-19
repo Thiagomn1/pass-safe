@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import type { IUser } from "../types/types";
 
 type Props = {
-  user: IUser;
+  user?: IUser | null;
   children: JSX.Element;
 };
 
