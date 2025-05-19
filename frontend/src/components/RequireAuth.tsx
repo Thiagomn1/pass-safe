@@ -1,11 +1,16 @@
 import type { JSX } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import type { IUser } from "../types/types";
 
-function RequireAuth({ user, children }: { user: any; children: JSX.Element }) {
+type Props = {
+  user?: IUser | null;
+  children: JSX.Element;
+};
+
+function RequireAuth({ user, children }: Props) {
   const location = useLocation();
 
   if (user === null) {
-    // Redirect to login, but keep the current location so you can redirect back after login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
