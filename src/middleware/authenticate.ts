@@ -1,13 +1,10 @@
+import { RequestHandler } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { AuthenticatedRequest } from "../types/types";
-import { Request, Response, NextFunction } from "express";
 
-const authenticate = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  const token = req.header("Authorization")?.split(" ")[1];
+const authenticate: RequestHandler = (req, res, next) => {
+  const token = req.cookies.token;
+  console.log(token, "@@@@@@@@@@");
 
   if (!token) {
     res.status(401).json({ error: "Access denied" });
@@ -17,15 +14,16 @@ const authenticate = (
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
-    if (typeof decoded !== "object" || !decoded.userId || !decoded.username) {
+    if (!decoded || typeof decoded !== "object") {
       res.status(400).json({ error: "Invalid token payload" });
       return;
     }
 
-    req.user = {
-      userId: decoded.userId as string,
-      username: decoded.username as string,
+    (req as AuthenticatedRequest).user = {
+      userId: decoded.userId,
+      username: decoded.username,
     };
+
     next();
   } catch (error) {
     res.status(400).json({ error: "Invalid token" });

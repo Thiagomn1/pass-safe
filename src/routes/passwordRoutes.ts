@@ -1,7 +1,6 @@
 import express from "express";
 import PasswordController from "../controllers/passwordController";
 import authenticate from "../middleware/authenticate";
-import checkAuthenticated from "../middleware/checkAuthenticated";
 import { validate } from "../middleware/validate";
 import {
   generatePasswordSchema,
@@ -13,7 +12,7 @@ const routes = express.Router();
 
 routes.use(authenticate);
 
-routes.get("/", checkAuthenticated, PasswordController.getSavedPasswords);
+routes.get("/", PasswordController.getSavedPasswords);
 
 routes.get(
   "/:site",

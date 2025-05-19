@@ -4,13 +4,24 @@ import passwordRoutes from "./routes/passwordRoutes";
 import userRoutes from "./routes/userRoutes";
 import connectDB from "./config/dbConnect";
 import errorHandler from "./middleware/errorHandler";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
 const PORT = 3000;
 
 const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+app.options("*", cors());
 app.use(express.json());
-app.use("/auth", userRoutes);
-app.use("/password", passwordRoutes);
+app.use(cookieParser());
+app.use("/api", userRoutes);
+app.use("/api/password", passwordRoutes);
 app.use(errorHandler);
 
 app.get("/", (req, res) => {
