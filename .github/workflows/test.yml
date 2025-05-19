@@ -1,4 +1,4 @@
-name: Run Tests
+name: Run Backend Tests
 
 on:
   pull_request:
@@ -8,6 +8,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: api
 
     steps:
       - name: Checkout code
