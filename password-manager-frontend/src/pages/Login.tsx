@@ -8,7 +8,6 @@ export default function Login() {
 
   const onSubmit = async (data: any) => {
     try {
-      console.log(data);
       await api.post("/login", data);
       navigate("/");
     } catch (error) {

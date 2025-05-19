@@ -14,7 +14,6 @@ class UserController {
   ) => {
     try {
       const userId = req?.user?.userId;
-      console.log(userId);
 
       const user = await User.findById(userId).select("-password");
       if (!user) {
