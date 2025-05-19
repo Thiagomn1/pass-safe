@@ -1,14 +1,19 @@
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
+interface ILoginFormInputs {
+  username: string;
+  password: string;
+}
+
 export default function Login() {
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit } = useForm<ILoginFormInputs>();
   const navigate = useNavigate();
 
-  const onSubmit = async (data: any) => {
+  const onSubmit: SubmitHandler<ILoginFormInputs> = async (data) => {
     try {
-      await api.post("/login", data);
+      await api.post("/auth/login", data);
       navigate("/");
     } catch (error) {
       console.error("Login failed", error);

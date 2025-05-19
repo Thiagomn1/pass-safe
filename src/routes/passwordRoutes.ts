@@ -13,25 +13,21 @@ const routes = express.Router();
 routes.use(authenticate);
 
 routes.get("/", PasswordController.getSavedPasswords);
-
 routes.get(
   "/:site",
   validate(siteParamSchema),
   PasswordController.getSitePassword
 );
-
 routes.post(
-  "/generate",
+  "/",
   validate(generatePasswordSchema),
   PasswordController.generatePassword
 );
-
 routes.put(
-  "/update",
+  "/:site",
   validate(updatePasswordSchema),
   PasswordController.updateSitePassword
 );
-
 routes.delete(
   "/:site",
   validate(siteParamSchema),

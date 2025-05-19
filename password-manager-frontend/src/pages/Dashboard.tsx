@@ -13,7 +13,7 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     try {
-      await api.post("/logout");
+      await api.post("/auth/logout");
       navigate("/login");
     } catch (error) {
       console.error("Logout failed", error);
@@ -21,7 +21,7 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    api.get("/password").then((res) => setPasswords(res.data));
+    api.get("/passwords").then((res) => setPasswords(res.data));
   }, []);
 
   return (

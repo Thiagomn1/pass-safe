@@ -1,11 +1,21 @@
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import api from "../api/axios";
 
-export default function Generate() {
-  const { register, handleSubmit } = useForm();
+interface IFormInputs {
+  site: string;
+  length: number;
+}
 
-  const onSubmit = async (data: any) => {
-    await api.post("/generate", data);
+export default function Generate() {
+  const { register, handleSubmit } = useForm<IFormInputs>();
+
+  const onSubmit: SubmitHandler<IFormInputs> = async (data: IFormInputs) => {
+    const payload = {
+      ...data,
+      length: Number(data.length),
+    };
+
+    await api.post("/passwords", payload);
     alert("Password generated!");
   };
 

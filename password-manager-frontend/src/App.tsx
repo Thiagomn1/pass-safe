@@ -13,7 +13,6 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      {/* Protect these routes */}
       <Route
         path="/"
         element={
@@ -23,7 +22,7 @@ function App() {
         }
       />
       <Route
-        path="/new"
+        path="/generate"
         element={
           <RequireAuth user={user}>
             <Generate />
