@@ -18,8 +18,7 @@ app.use(
   })
 );
 app.options("*", cors());
-app.use(express.json());
-app.use(cookieParser());
+app.use(express.json(), cookieParser());
 app.use("/api/auth", userRoutes);
 app.use("/api/passwords", passwordRoutes);
 app.use(errorHandler);

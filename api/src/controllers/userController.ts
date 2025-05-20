@@ -13,17 +13,22 @@ class UserController {
     next: NextFunction
   ) => {
     try {
-      const userId = req?.user?.userId;
+      const token = req.cookies.token;
+      if (!token) {
+        res.status(401).json({ error: "Not authenticated" });
+        return;
+      }
 
-      const user = await User.findById(userId).select("-password");
+      const decoded = jwt.verify(token, SECRET_KEY!) as { userId: string };
+      const user = await User.findById(decoded.userId).select("-password");
       if (!user) {
         res.status(404).json({ error: "User not found" });
         return;
       }
 
-      res.status(200).json(user);
-    } catch (error) {
-      next(error);
+      res.json(user);
+    } catch (err) {
+      next(err);
     }
   };
 
@@ -73,7 +78,7 @@ class UserController {
           httpOnly: true,
           sameSite: "lax",
           secure: process.env.NODE_ENV === "production",
-          maxAge: 60 * 60 * 1000, // 1 hour
+          maxAge: 60 * 60 * 1000,
         })
         .status(200)
         .json({ message: "Login successful" });

@@ -1,9 +1,10 @@
 import { Routes, Route } from "react-router-dom";
-import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Generate from "./pages/Generate";
 import RequireAuth from "./components/RequireAuth";
+import Layout from "./components/Layout";
+import { useAuth } from "./hooks/useAuth";
 
 function App() {
   const { user, loading } = useAuth();
@@ -12,23 +13,25 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route
-        path="/"
-        element={
-          <RequireAuth user={user}>
-            <Dashboard />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/generate"
-        element={
-          <RequireAuth user={user}>
-            <Generate />
-          </RequireAuth>
-        }
-      />
+      <Route element={<Layout user={user} />}>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/"
+          element={
+            <RequireAuth user={user}>
+              <Dashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/generate"
+          element={
+            <RequireAuth user={user}>
+              <Generate />
+            </RequireAuth>
+          }
+        />
+      </Route>
     </Routes>
   );
 }

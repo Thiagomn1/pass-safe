@@ -1,17 +1,8 @@
-import { useEffect, useState } from "react";
-import api from "../api/axios";
+import { useContext } from "react";
+import { AuthContext } from "../context/auth/AuthContext";
 
-export function useAuth() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    api
-      .get("/auth/me")
-      .then((res) => setUser(res.data))
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { user, setUser, loading };
-}
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+};

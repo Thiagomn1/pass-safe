@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
-import { useNavigate } from "react-router-dom";
 
 interface IPasswordData {
   site: string;
@@ -8,17 +7,7 @@ interface IPasswordData {
 }
 
 export default function Dashboard() {
-  const navigate = useNavigate();
   const [passwords, setPasswords] = useState([]);
-
-  const handleLogout = async () => {
-    try {
-      await api.post("/auth/logout");
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  };
 
   useEffect(() => {
     api.get("/passwords").then((res) => setPasswords(res.data));
@@ -27,7 +16,6 @@ export default function Dashboard() {
   return (
     <div>
       <h2>Saved Passwords</h2>
-      <button onClick={handleLogout}>Logout</button>
       <ul>
         {passwords.map((p: IPasswordData) => (
           <li key={p.site}>
