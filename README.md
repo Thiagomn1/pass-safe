@@ -1,4 +1,4 @@
-# Password Manager API
+# PassSafe
 
 This is a FullStack application that generates secure passwords for the requested sites, encrypts them and saves them to your personal account
 
