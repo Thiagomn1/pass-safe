@@ -2,8 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Generate from "./pages/Generate";
-import RequireAuth from "./components/RequireAuth";
-import Layout from "./components/Layout";
+import RequireAuth from "./components/auth/RequireAuth";
+import Layout from "./components/layout/Layout";
 import { useAuth } from "./hooks/useAuth";
 
 function App() {

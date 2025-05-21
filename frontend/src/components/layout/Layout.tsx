@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
-import type { IUser } from "../types/types";
+import type { IUser } from "../../types/types";
 
 type LayoutProps = {
   user?: IUser | null;

@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "./ui/button";
-import type { IUser } from "../types/types";
-import api from "../api/axios";
-import { useAuth } from "../hooks/useAuth";
+import { Button } from "../ui/button";
+import type { IUser } from "../../types/types";
+import api from "../../api/axios";
+import { useAuth } from "../../hooks/useAuth";
 
 type NavbarProps = {
   user?: IUser | null;
