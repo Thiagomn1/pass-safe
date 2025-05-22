@@ -6,6 +6,8 @@ import {
   generatePasswordSchema,
   updatePasswordSchema,
   siteParamSchema,
+  savePasswordParseSchema,
+  savePasswordSchema,
 } from "../validation/passwordSchemas";
 
 const routes = express.Router();
@@ -18,18 +20,19 @@ routes.get(
   validate(siteParamSchema),
   PasswordController.getSitePassword
 );
-routes.post(
-  "/",
+routes.get(
+  "/generate",
   validate(generatePasswordSchema),
   PasswordController.generatePassword
 );
+routes.post("/", validate(savePasswordSchema), PasswordController.savePassword);
 routes.put(
   "/:site",
   validate(updatePasswordSchema),
   PasswordController.updateSitePassword
 );
 routes.delete(
-  "/:site",
+  "/:id",
   validate(siteParamSchema),
   PasswordController.deleteSitePassword
 );

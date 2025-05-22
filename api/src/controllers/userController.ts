@@ -3,6 +3,7 @@ import User from "../models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { AuthenticatedRequest } from "../types/types";
+import { userParseSchema } from "../validation/userSchemas";
 
 const SECRET_KEY = process.env.JWT_SECRET;
 
@@ -37,7 +38,8 @@ class UserController {
     res: Response,
     next: NextFunction
   ) => {
-    const { username, password } = req.body;
+    const { username, password } = userParseSchema.parse(req.body);
+
     try {
       if (await User.findOne({ username })) {
         res.status(400).json({ error: "User already exists" });
@@ -61,7 +63,7 @@ class UserController {
     next: NextFunction
   ) => {
     try {
-      const { username, password } = req.body;
+      const { username, password } = userParseSchema.parse(req.body);
       const user = await User.findOne({ username });
 
       if (!user || !(await bcrypt.compare(password, user.password))) {

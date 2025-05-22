@@ -6,6 +6,7 @@ import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { toast } from "sonner";
 
 interface IRegisterFormInputs {
   username: string;
@@ -27,7 +28,7 @@ export default function SignUp() {
   const onSubmit: SubmitHandler<IRegisterFormInputs> = async (data) => {
     try {
       if (data.password !== data.confirmPassword) {
-        alert("Passwords do not match");
+        toast("Passwords do not match");
         return;
       }
 
@@ -36,6 +37,7 @@ export default function SignUp() {
       setUser(me.data);
       navigate("/");
     } catch (error) {
+      toast("Registration failed, please try again.");
       console.error("Register failed", error);
     }
   };

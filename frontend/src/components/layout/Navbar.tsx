@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "../ui/button";
 import type { IUser } from "../../types/types";
 import api from "../../api/axios";
@@ -17,6 +18,7 @@ export default function Navbar({ user }: NavbarProps) {
     try {
       await api.post("/auth/logout");
       setUser(null);
+      toast("Successfully logged out");
       navigate("/login");
     } catch (error) {
       console.error("Logout failed", error);

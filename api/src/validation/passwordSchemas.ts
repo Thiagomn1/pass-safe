@@ -7,11 +7,6 @@ export const generatePasswordSchema = z.object({
   }),
 });
 
-export const generatePasswordParseSchema = z.object({
-  length: z.number().int().positive(),
-  site: z.string().min(1),
-});
-
 export const updatePasswordSchema = z.object({
   body: z.object({
     length: z.number().int().positive(),
@@ -21,10 +16,31 @@ export const updatePasswordSchema = z.object({
 
 export const siteParamSchema = z.object({
   params: z.object({
+    id: z.string().min(1),
+  }),
+});
+
+export const savePasswordSchema = z.object({
+  body: z.object({
+    password: z.string().min(8),
     site: z.string().min(1),
   }),
 });
 
 export const deleteSitePasswordParseSchema = z.object({
-  site: z.string().min(1, "Site param is required"),
+  id: z.string().min(1, "ID is required"),
+});
+
+export const generatePasswordParseSchema = z.object({
+  length: z.number().int().positive(),
+});
+
+export const updatePasswordParseSchema = z.object({
+  length: z.number().int().positive(),
+  site: z.string().min(1),
+});
+
+export const savePasswordParseSchema = z.object({
+  password: z.string().min(8),
+  site: z.string().min(1),
 });

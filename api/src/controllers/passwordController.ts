@@ -6,6 +6,8 @@ import { decryptPassword, encryptPassword } from "../utils/encryption";
 import {
   deleteSitePasswordParseSchema,
   generatePasswordParseSchema,
+  savePasswordParseSchema,
+  updatePasswordParseSchema,
 } from "../validation/passwordSchemas";
 
 class PasswordController {
@@ -27,6 +29,7 @@ class PasswordController {
         ({ _id, site, password }) => ({
           site,
           password: decryptPassword(password),
+          id: _id,
         })
       );
 
@@ -69,24 +72,45 @@ class PasswordController {
     next: NextFunction
   ) => {
     try {
-      const { length, site } = generatePasswordParseSchema.parse(req.body);
+      const { length } = generatePasswordParseSchema.parse(req.body);
 
       const password = passwordGenerator(length);
-      const encryptedPassword = encryptPassword(password);
 
-      const user = await User.findById(req?.user?.userId);
+      res.status(201).json({ password });
+    } catch (error) {
+      next(error);
+    }
+  };
 
+  static savePassword = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { site, password } = savePasswordParseSchema.parse(req.body);
+      const userId = req?.user?.userId;
+      const user = await User.findById(userId);
       if (!user) {
         res.status(404).json({ error: "User not found" });
         return;
       }
 
-      user.savedPasswords.push({ site, password: encryptedPassword });
+      const encryptedPassword = encryptPassword(password);
+
+      const newPasswordEntry = { site, password: encryptedPassword };
+      user.savedPasswords.push(newPasswordEntry);
       await user.save();
 
-      res.status(201).json({ site, password });
-    } catch (error) {
-      next(error);
+      const savedPassword = user.savedPasswords[user.savedPasswords.length - 1];
+
+      res.status(201).json({
+        id: savedPassword._id,
+        site: savedPassword.site,
+        password,
+      });
+    } catch (err) {
+      next(err);
     }
   };
 
@@ -96,7 +120,7 @@ class PasswordController {
     next: NextFunction
   ) => {
     try {
-      const { site, length } = req.body;
+      const { length, site } = updatePasswordParseSchema.parse(req.body);
 
       const user = await User.findById(req?.user?.userId);
 
@@ -136,28 +160,27 @@ class PasswordController {
     next: NextFunction
   ) => {
     try {
-      const { site } = deleteSitePasswordParseSchema.parse(req.params);
+      const { id } = deleteSitePasswordParseSchema.parse(req.params);
+      const userId = req?.user?.userId;
+      const passwordId = req.params.id;
 
-      const user = await User.findById(req?.user?.userId);
+      const user = await User.findById(userId);
 
       if (!user) {
         res.status(404).json({ error: "User not found" });
         return;
       }
 
-      const entryToRemove = user.savedPasswords.find((entry) =>
-        entry.site.includes(site)
-      );
+      const entryToRemove = user.savedPasswords.id(id);
 
       if (!entryToRemove) {
-        res.status(404).json({ error: "Password for site not found." });
+        res.status(404).json({ error: "Password entry not found." });
         return;
       }
-
-      user.savedPasswords.pull(entryToRemove._id);
+      user.savedPasswords.pull(id);
       await user.save();
 
-      res.status(200).json({ message: `Password for '${site}' deleted.` });
+      res.status(200).json({ message: `Password entry deleted.` });
     } catch (error) {
       next(error);
     }

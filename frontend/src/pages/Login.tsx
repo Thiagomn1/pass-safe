@@ -1,6 +1,7 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import api from "../api/axios";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
@@ -19,6 +20,7 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
+      toast("Already logged in, redirecting...");
       navigate("/");
     }
   }, [user, navigate]);
@@ -27,8 +29,10 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", data);
       setUser(res.data.user);
+      toast("Successfully logged in. Redirecting...");
       navigate("/");
     } catch (error) {
+      toast("Login failed. Check your credentials and try again.");
       console.error("Login failed", error);
     }
   };
