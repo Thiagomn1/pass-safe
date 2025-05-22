@@ -30,7 +30,7 @@ export default function Navbar({ user }: NavbarProps) {
     <nav className="w-full border-b flex items-center justify-center">
       <div className="container flex items-center justify-between py-4">
         <Link
-          to="/"
+          to={user ? "/dashboard" : "/"}
           className="text-xl font-semibold pl-4 hover:text-blue-500 transition duration-150"
         >
           PassSafe
@@ -40,6 +40,14 @@ export default function Navbar({ user }: NavbarProps) {
           <Link to="/about" className="text-sm font-medium hover:underline">
             About
           </Link>
+          {user && (
+            <Link
+              to="/generate"
+              className="text-sm font-medium hover:underline"
+            >
+              Generate
+            </Link>
+          )}
           {user ? (
             <Button
               className="cursor-pointer"

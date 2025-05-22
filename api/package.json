@@ -1,5 +1,5 @@
 {
-  "name": "password-manager",
+  "name": "pass-safe-api",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {

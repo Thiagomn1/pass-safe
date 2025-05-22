@@ -6,19 +6,26 @@ import RequireAuth from "./components/auth/RequireAuth";
 import Layout from "./components/layout/Layout";
 import { useAuth } from "./hooks/useAuth";
 import SignUp from "./pages/SignUp";
+import Home from "./pages/Home";
 
 function App() {
   const { user, loading } = useAuth();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <span className="loader"></span>
+      </div>
+    );
 
   return (
     <Routes>
       <Route element={<Layout user={user} />}>
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<SignUp />} />
         <Route
-          path="/"
+          path="/dashboard"
           element={
             <RequireAuth user={user}>
               <Dashboard />
