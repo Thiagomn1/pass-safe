@@ -7,7 +7,8 @@ import {
   deleteSitePasswordParseSchema,
   generatePasswordParseSchema,
   savePasswordParseSchema,
-  updatePasswordParseSchema,
+  updatePasswordBodySchema,
+  updatePasswordIdSchema,
 } from "../validation/passwordSchemas";
 
 class PasswordController {
@@ -120,34 +121,29 @@ class PasswordController {
     next: NextFunction
   ) => {
     try {
-      const { length, site } = updatePasswordParseSchema.parse(req.body);
+      const { id } = updatePasswordIdSchema.parse(req.params);
+      const { password } = updatePasswordBodySchema.parse(req.body);
 
       const user = await User.findById(req?.user?.userId);
-
       if (!user) {
         res.status(404).json({ error: "User not found" });
         return;
       }
 
-      const passwordEntry = user.savedPasswords.find((entry) =>
-        entry.site.includes(site)
-      );
-
+      const passwordEntry = user.savedPasswords.id(id);
       if (!passwordEntry) {
-        res.status(404).json({ error: "Password for site not found." });
+        res.status(404).json({ error: "Password entry not found." });
         return;
       }
 
-      const newPassword = passwordGenerator(length);
-      const encryptedPassword = encryptPassword(newPassword);
-
+      const encryptedPassword = encryptPassword(password);
       passwordEntry.password = encryptedPassword;
 
       await user.save();
 
       res.status(200).json({
         site: passwordEntry.site,
-        newPassword,
+        message: "Password updated successfully.",
       });
     } catch (error) {
       next(error);

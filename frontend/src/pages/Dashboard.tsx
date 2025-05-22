@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, Copy } from "lucide-react";
+import { motion } from "framer-motion";
 import api from "../api/axios";
 import {
   Table,
@@ -38,10 +39,19 @@ export default function Dashboard() {
     }
   };
 
-  return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-4 text-center">Saved Passwords</h1>
+  const copyToClipboard = (passwordToCopy: string) => {
+    navigator.clipboard.writeText(passwordToCopy);
+    toast("Password copied to clipboard!");
+  };
 
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="p-6"
+    >
+      <h1 className="text-3xl font-bold mb-4 text-center">Saved Passwords</h1>
       <Card>
         <CardContent className="p-4">
           <Table>
@@ -86,7 +96,16 @@ export default function Dashboard() {
                       </button>
                     </TableCell>
                     <TableCell>{p.site}</TableCell>
-                    <TableCell>{p.password}</TableCell>
+                    <TableCell className="flex items-center gap-2">
+                      <span className="truncate">{p.password}</span>
+                      <button
+                        onClick={() => copyToClipboard(p.password)}
+                        className="text-blue-500 hover:text-blue-700 cursor-pointer"
+                        aria-label={`Copy password for ${p.site}`}
+                      >
+                        <Copy size={16} />
+                      </button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -94,6 +113,6 @@ export default function Dashboard() {
           </Table>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 }
