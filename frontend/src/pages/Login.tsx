@@ -1,5 +1,6 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import api from "../api/axios";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
@@ -18,7 +19,6 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      console.log(user);
       navigate("/");
     }
   }, [user, navigate]);
@@ -34,7 +34,12 @@ export default function Login() {
   };
 
   return (
-    <div className=" pt-4 flex flex-col items-center justify-center">
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="pt-4 flex flex-col items-center justify-center"
+    >
       <h2 className="text-3xl font-bold mb-8 text-center">Login</h2>
       <form
         onSubmit={handleSubmit(onSubmit)}
@@ -62,6 +67,6 @@ export default function Login() {
           Create an account.
         </Link>
       </p>
-    </div>
+    </motion.div>
   );
 }

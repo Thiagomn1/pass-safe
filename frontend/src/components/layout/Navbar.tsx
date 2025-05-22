@@ -26,7 +26,10 @@ export default function Navbar({ user }: NavbarProps) {
   return (
     <nav className="w-full border-b flex items-center justify-center">
       <div className="container flex items-center justify-between py-4">
-        <Link to="/" className="text-xl font-semibold pl-4">
+        <Link
+          to="/"
+          className="text-xl font-semibold pl-4 hover:text-blue-500 transition duration-150"
+        >
           PassSafe
         </Link>
 

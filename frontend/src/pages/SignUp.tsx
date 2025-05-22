@@ -1,5 +1,6 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import api from "../api/axios";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
@@ -15,13 +16,13 @@ interface IRegisterFormInputs {
 export default function SignUp() {
   const { register, handleSubmit } = useForm<IRegisterFormInputs>();
   const navigate = useNavigate();
+  const { user, setUser } = useAuth();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) navigate("/");
-  }, [navigate]);
-
-  const { setUser } = useAuth();
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   const onSubmit: SubmitHandler<IRegisterFormInputs> = async (data) => {
     try {
@@ -40,7 +41,12 @@ export default function SignUp() {
   };
 
   return (
-    <div className=" pt-4 flex flex-col items-center justify-center">
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="pt-4 flex flex-col items-center justify-center"
+    >
       <h2 className="text-3xl font-bold mb-8 text-center">Sign up</h2>
       <form
         onSubmit={handleSubmit(onSubmit)}
@@ -68,6 +74,6 @@ export default function SignUp() {
           Register
         </Button>
       </form>
-    </div>
+    </motion.div>
   );
 }
