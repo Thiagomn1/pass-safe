@@ -2,6 +2,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import type { IUser } from "../../types/types";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "../ui/dropdown-menu";
 import api from "../../api/axios";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -18,10 +24,10 @@ export default function Navbar({ user }: NavbarProps) {
     try {
       await api.post("/auth/logout");
       setUser(null);
-      toast("Successfully logged out");
+      toast.success("Successfully logged out");
       navigate("/login");
     } catch (error) {
-      toast("Logout failed. Please try again later.");
+      toast.error("Logout failed. Please try again later.");
       console.error("Logout failed", error);
     }
   };
@@ -49,13 +55,24 @@ export default function Navbar({ user }: NavbarProps) {
             </Link>
           )}
           {user ? (
-            <Button
-              className="cursor-pointer"
-              onClick={handleLogout}
-              variant="secondary"
-            >
-              Logout
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="font-medium border-black border-b-2 cursor-pointer"
+                >
+                  {user.username}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Button variant="default">
               <Link to="/login" className="text-sm font-medium hover:underline">

@@ -35,14 +35,18 @@ export default function Generate() {
       const { password, site } = data;
 
       await api.post("/passwords", { password, site });
-      toast(`Password for ${data.site} saved successfully!`);
+      toast.success(`Password for ${data.site} saved successfully!`);
       generatePassword(length ? length : 16);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        toast("Field validation failed. Check console for more information");
+        toast.error(
+          "Field validation failed. Check console for more information"
+        );
         console.error("Field validation failed:", error);
       } else {
-        toast("An unknown error occurred. Check console for more information");
+        toast.error(
+          "An unknown error occurred. Check console for more information"
+        );
         console.error("Request failed:", error);
       }
     }

@@ -34,14 +34,14 @@ export default function Dashboard() {
           prev?.filter((p: IPasswordData) => p.id !== idToDelete) ?? null
       );
     } catch (err) {
-      toast("Failed to delete password, please try again later.");
+      toast.error("Failed to delete password, please try again later.");
       console.error("Failed to delete password:", err);
     }
   };
 
   const copyToClipboard = (passwordToCopy: string) => {
     navigator.clipboard.writeText(passwordToCopy);
-    toast("Password copied to clipboard!");
+    toast.info("Password copied to clipboard!");
   };
 
   return (

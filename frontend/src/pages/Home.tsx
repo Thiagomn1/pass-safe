@@ -1,7 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
+import { useAuth } from "../hooks/useAuth";
+import { useEffect } from "react";
 
 export default function Home() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) navigate("/dashboard");
+  }, [user, navigate]);
   return (
     <div className="relative h-[calc(100vh-7.5rem)] overflow-hidden">
       <div

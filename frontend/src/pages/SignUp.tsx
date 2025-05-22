@@ -21,23 +21,23 @@ export default function SignUp() {
 
   useEffect(() => {
     if (user) {
-      navigate("/");
+      navigate("/dashboard");
     }
   }, [user, navigate]);
 
   const onSubmit: SubmitHandler<IRegisterFormInputs> = async (data) => {
     try {
       if (data.password !== data.confirmPassword) {
-        toast("Passwords do not match");
+        toast.error("Passwords do not match");
         return;
       }
 
-      await api.post("/auth/register", data);
-      const me = await api.get("/auth/me");
-      setUser(me.data);
-      navigate("/");
+      const res = await api.post("/auth/signup", data);
+      setUser(res.data.user);
+      toast.success("Successfully registered. Redirecting...");
+      navigate("/dashboard");
     } catch (error) {
-      toast("Registration failed, please try again.");
+      toast.error("Registration failed, please try again.");
       console.error("Register failed", error);
     }
   };

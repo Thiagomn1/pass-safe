@@ -20,8 +20,8 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      toast("Already logged in, redirecting...");
-      navigate("/");
+      toast.info("Already logged in, redirecting...");
+      navigate("/dashboard");
     }
   }, [user, navigate]);
 
@@ -29,10 +29,10 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", data);
       setUser(res.data.user);
-      toast("Successfully logged in. Redirecting...");
+      toast.success("Successfully logged in. Redirecting...");
       navigate("/");
     } catch (error) {
-      toast("Login failed. Check your credentials and try again.");
+      toast.error("Login failed. Check your credentials and try again.");
       console.error("Login failed", error);
     }
   };

@@ -41,17 +41,30 @@ class UserController {
     const { username, password } = userParseSchema.parse(req.body);
 
     try {
-      if (await User.findOne({ username })) {
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
         res.status(400).json({ error: "User already exists" });
         return;
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-
       const newUser = new User({ username, password: hashedPassword });
       await newUser.save();
 
-      res.status(201).json({ message: "User created successfully" });
+      const token = jwt.sign({ userId: newUser._id, username }, SECRET_KEY!, {
+        expiresIn: "1h",
+      });
+
+      res.cookie("token", token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 1000,
+      });
+      res.status(201).json({
+        message: "User created and logged in successfully",
+        user: newUser,
+      });
     } catch (error) {
       next(error);
     }
