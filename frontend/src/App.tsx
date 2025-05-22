@@ -5,6 +5,7 @@ import Generate from "./pages/Generate";
 import RequireAuth from "./components/auth/RequireAuth";
 import Layout from "./components/layout/Layout";
 import { useAuth } from "./hooks/useAuth";
+import SignUp from "./pages/SignUp";
 
 function App() {
   const { user, loading } = useAuth();
@@ -15,6 +16,7 @@ function App() {
     <Routes>
       <Route element={<Layout user={user} />}>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<SignUp />} />
         <Route
           path="/"
           element={

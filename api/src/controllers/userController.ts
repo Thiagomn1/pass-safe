@@ -81,7 +81,10 @@ class UserController {
           maxAge: 60 * 60 * 1000,
         })
         .status(200)
-        .json({ message: "Login successful" });
+        .json({
+          message: "Login successful",
+          user,
+        });
     } catch (error) {
       next(error);
     }
