@@ -21,6 +21,7 @@ export default function Navbar({ user }: NavbarProps) {
       toast("Successfully logged out");
       navigate("/login");
     } catch (error) {
+      toast("Logout failed. Please try again later.");
       console.error("Logout failed", error);
     }
   };

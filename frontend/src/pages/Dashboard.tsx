@@ -22,10 +22,7 @@ export default function Dashboard() {
   const [passwords, setPasswords] = useState<IPasswordData[] | null>(null);
 
   useEffect(() => {
-    api.get("/passwords").then((res) => {
-      setPasswords(res.data);
-      console.log(res.data);
-    });
+    api.get("/passwords").then((res) => setPasswords(res.data));
   }, []);
 
   const handleDelete = async (idToDelete: string) => {

@@ -162,7 +162,6 @@ class PasswordController {
     try {
       const { id } = deleteSitePasswordParseSchema.parse(req.params);
       const userId = req?.user?.userId;
-      const passwordId = req.params.id;
 
       const user = await User.findById(userId);
 

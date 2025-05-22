@@ -23,6 +23,7 @@ export default function Generate() {
 
   const generatedPassword = watch("password");
   const site = watch("site");
+  const length = watch("length");
 
   const generatePassword = (length: number = 16) => {
     const password = passwordGenerator(length);
@@ -33,17 +34,16 @@ export default function Generate() {
     try {
       const { password, site } = data;
 
-      const res = await api.post("/passwords", { password, site });
-      console.log(res);
+      await api.post("/passwords", { password, site });
       toast(`Password for ${data.site} saved successfully!`);
-      generatePassword(16);
+      generatePassword(length ? length : 16);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error("Field validation failed:", error);
         toast("Field validation failed. Check console for more information");
+        console.error("Field validation failed:", error);
       } else {
-        console.error("Request failed:", error);
         toast("An unknown error occurred. Check console for more information");
+        console.error("Request failed:", error);
       }
     }
   };
@@ -77,7 +77,7 @@ export default function Generate() {
           <Button
             type="button"
             className="cursor-pointer"
-            onClick={() => generatePassword(watch("length") || 16)}
+            onClick={() => generatePassword(length || 16)}
           >
             Generate
           </Button>
