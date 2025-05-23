@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import type { IUser } from "../types/types";
+import type { IUser } from "../../types/types";
 
 type Props = {
   user?: IUser | null;

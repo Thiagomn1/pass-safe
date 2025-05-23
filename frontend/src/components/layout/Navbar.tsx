@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import type { IUser } from "../../types/types";
@@ -62,6 +63,7 @@ export default function Navbar({ user }: NavbarProps) {
                   className="font-medium border-black border-b-2 cursor-pointer"
                 >
                   {user.username}
+                  <ArrowDown size={16} />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40">
