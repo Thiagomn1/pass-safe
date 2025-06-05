@@ -7,6 +7,7 @@ import Layout from "./components/layout/Layout";
 import { useAuth } from "./hooks/useAuth";
 import SignUp from "./pages/SignUp";
 import Home from "./pages/Home";
+import Profile from "./pages/Profile";
 
 function App() {
   const { user, loading } = useAuth();
@@ -37,6 +38,14 @@ function App() {
           element={
             <RequireAuth user={user}>
               <Generate />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <RequireAuth user={user}>
+              <Profile />
             </RequireAuth>
           }
         />

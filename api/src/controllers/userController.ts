@@ -3,7 +3,10 @@ import User from "../models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { AuthenticatedRequest } from "../types/types";
-import { userParseSchema } from "../validation/userSchemas";
+import {
+  updateUserParseSchema,
+  userParseSchema,
+} from "../validation/userSchemas";
 
 const SECRET_KEY = process.env.JWT_SECRET;
 
@@ -119,6 +122,56 @@ class UserController {
         })
         .status(200)
         .json({ message: "Logged out successfully" });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static updateUser = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const token = req.cookies.token;
+      if (!token) {
+        res.status(401).json({ error: "Not authenticated" });
+        return;
+      }
+
+      const decoded = jwt.verify(token, SECRET_KEY!) as { userId: string };
+      const user = await User.findById(decoded.userId);
+
+      if (!user) {
+        res.status(404).json({ error: "User not found" });
+        return;
+      }
+
+      const { username, password } = req.body;
+      console.log(username, password);
+
+      if (username && username !== user.username) {
+        const existingUser = await User.findOne({ username });
+
+        if (existingUser) {
+          res.status(400).json({ error: "Username already taken" });
+          return;
+        }
+
+        user.username = username;
+      }
+
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.password = hashedPassword;
+      }
+
+      await user.save();
+
+      res.status(200).json({
+        message: "User updated successfully",
+        user: { username: user.username },
+      });
     } catch (error) {
       next(error);
     }
