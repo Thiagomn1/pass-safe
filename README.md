@@ -2,15 +2,13 @@
 
 This is a FullStack application that generates secure passwords for the requested sites, encrypts them and saves them to your personal account
 
-# How to run
+# Setup
 
 ## Frontend
 
 1. Navigate to the frontend folder with `cd frontend`
    
 2. Install dependencies with `npm install`
-
-3. Run the project with `npm run dev`, the application is now running on `http://localhost:5173`
 
 ## Backend
 
@@ -29,4 +27,8 @@ JWT_SECRET= Can be any value, or generate one in https://jwtsecret.com/generate
 ENCRYPTION_SECRET= Must be a 32 bit value
 ```
 
-5. Run the project with `npm run dev`
+## Running the Project
+
+
+1. In the root folder run `npm install`
+2. Start the project with `npm run dev`
