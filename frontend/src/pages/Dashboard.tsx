@@ -12,7 +12,9 @@ import {
 } from "../components/ui/table";
 import { Card, CardContent } from "../components/ui/card";
 import { Skeleton } from "../components/ui/skeleton";
+import { Input } from "../components/ui/input";
 import { toast } from "sonner";
+
 interface IPasswordData {
   site: string;
   password: string;
@@ -21,18 +23,37 @@ interface IPasswordData {
 
 export default function Dashboard() {
   const [passwords, setPasswords] = useState<IPasswordData[] | null>(null);
+  const [filtered, setFiltered] = useState<IPasswordData[] | null>(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    api.get("/passwords").then((res) => setPasswords(res.data));
+    api.get("/passwords").then((res) => {
+      setPasswords(res.data);
+      setFiltered(res.data);
+    });
   }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!search.trim()) {
+        setFiltered(passwords);
+      } else {
+        const term = search.toLowerCase();
+        setFiltered(
+          passwords?.filter((p) => p.site.toLowerCase().includes(term)) ?? null
+        );
+      }
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [search, passwords]);
 
   const handleDelete = async (idToDelete: string) => {
     try {
       await api.delete(`/passwords/${idToDelete}`);
-      setPasswords(
-        (prev) =>
-          prev?.filter((p: IPasswordData) => p.id !== idToDelete) ?? null
-      );
+      const updated = passwords?.filter((p) => p.id !== idToDelete) ?? null;
+      setPasswords(updated);
+      setFiltered(updated);
     } catch (err) {
       toast.error("Failed to delete password, please try again later.");
       console.error("Failed to delete password:", err);
@@ -52,6 +73,16 @@ export default function Dashboard() {
       className="p-6"
     >
       <h1 className="text-3xl font-bold mb-4 text-center">Saved Passwords</h1>
+
+      <div className="flex justify-center mb-4">
+        <Input
+          placeholder="Search for a site.."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="max-w-md w-full"
+        />
+      </div>
+
       <Card>
         <CardContent className="p-4">
           <Table>
@@ -63,7 +94,7 @@ export default function Dashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {!passwords ? (
+              {!filtered ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
                     <TableCell>
@@ -77,15 +108,15 @@ export default function Dashboard() {
                     </TableCell>
                   </TableRow>
                 ))
-              ) : passwords.length === 0 ? (
+              ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={2} className="text-center">
-                    No passwords saved yet.
+                  <TableCell colSpan={3} className="text-center">
+                    No matching passwords found.
                   </TableCell>
                 </TableRow>
               ) : (
-                passwords.map((p: IPasswordData) => (
-                  <TableRow key={p.site}>
+                filtered.map((p: IPasswordData) => (
+                  <TableRow key={p.id}>
                     <TableCell>
                       <button
                         onClick={() => handleDelete(p.id)}
