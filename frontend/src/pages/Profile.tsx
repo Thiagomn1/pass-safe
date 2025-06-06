@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import api from "../api/axios";
 import { useAuth } from "../hooks/useAuth";
 import { useForm, type SubmitHandler } from "react-hook-form";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 interface IUpdateFormInputs {
   username: string;
@@ -13,48 +14,70 @@ interface IUpdateFormInputs {
   confirmPassword: string;
 }
 
+interface IPasswordData {
+  site: string;
+  password: string;
+  id: string;
+}
+
 export default function Profile() {
   const { user, setUser } = useAuth();
   const { register, handleSubmit } = useForm<IUpdateFormInputs>();
   const [passwordCount, setPasswordCount] = useState(0);
 
-  useEffect(() => {
-    api
-      .get("/passwords")
-      .then((res) => setPasswordCount(res.data.length))
-      .catch(() => toast.error("Failed to fetch passwords"));
-  }, []);
+  const { isLoading } = useQuery<IPasswordData[]>({
+    queryKey: ["passwords"],
+    queryFn: async () => {
+      const res = await api.get("/passwords");
+      setPasswordCount(res.data.length);
+      return res.data;
+    },
+  });
+
+  const updateUsernameMutation = useMutation({
+    mutationFn: async (username: string) => {
+      const res = await api.patch("/auth/update", { username });
+      return res.data.user;
+    },
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser);
+      toast.success("Username updated successfully.");
+    },
+    onError: () => {
+      toast.error("Failed to update username, please try again.");
+    },
+  });
+
+  const updatePasswordMutation = useMutation({
+    mutationFn: async ({ password }: { password: string }) => {
+      await api.patch("/auth/update", { password });
+      await api.post("/auth/logout");
+    },
+    onSuccess: () => {
+      setUser(null);
+      toast.success("Password updated successfully. Redirecting...");
+    },
+    onError: () => {
+      toast.error("Failed to update password. Please try again.");
+    },
+  });
 
   const handleUsernameUpdate: SubmitHandler<IUpdateFormInputs> = async (
     data
   ) => {
-    try {
-      const res = await api.patch("/auth/update", data);
-      setUser(res.data.user);
-      toast.success("Username updated successfuly.");
-    } catch (error) {
-      toast.error("Failed to update username, please try again.");
-      console.error("Failed to update username: ", error);
-    }
+    if (!data.username) return toast.error("Username is required");
+    updateUsernameMutation.mutate(data.username);
   };
 
   const handlePasswordUpdate: SubmitHandler<IUpdateFormInputs> = async (
     data
   ) => {
-    try {
-      if (data.password !== data.confirmPassword) {
-        toast.error("Passwords do not match");
-        return;
-      }
-      await api.patch("/auth/update", data);
-      await api.post("/auth/logout");
-      setUser(null);
-      toast.success("Password updated successfully. Redirecting..");
-      setUser(null);
-    } catch (error) {
-      toast.error("Failed to update password. Please try again later.");
-      console.error("Failed to update password: ", error);
+    if (data.password !== data.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
     }
+
+    updatePasswordMutation.mutate({ password: data.password });
   };
 
   return (
@@ -66,7 +89,8 @@ export default function Profile() {
             <strong>Username:</strong> {user?.username}
           </p>
           <p>
-            <strong>Saved Passwords:</strong> {passwordCount}
+            <strong>Saved Passwords:</strong>{" "}
+            {isLoading ? "Fetching..." : passwordCount}
           </p>
         </CardContent>
       </Card>

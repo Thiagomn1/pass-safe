@@ -7,6 +7,8 @@ import { Button } from "../components/ui/button";
 import { useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
 
 interface IRegisterFormInputs {
   username: string;
@@ -25,21 +27,31 @@ export default function SignUp() {
     }
   }, [user, navigate]);
 
-  const onSubmit: SubmitHandler<IRegisterFormInputs> = async (data) => {
-    try {
-      if (data.password !== data.confirmPassword) {
-        toast.error("Passwords do not match");
-        return;
-      }
-
-      const res = await api.post("/auth/signup", data);
+  const signUpMutation = useMutation({
+    mutationFn: (data: IRegisterFormInputs) => api.post("/auth/signup", data),
+    onSuccess: (res) => {
       setUser(res.data.user);
       toast.success("Successfully registered. Redirecting...");
-      navigate("/dashboard");
-    } catch (error) {
-      toast.error("Registration failed, please try again.");
-      console.error("Register failed", error);
+      navigate("/");
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        toast.error("Registration failed. Check your input and try again.");
+        console.error("Registration failed:", error.response?.data || error);
+      } else {
+        toast.error("An unknown error occurred during login.");
+        console.error("Unexpected error:", error);
+      }
+    },
+  });
+
+  const onSubmit: SubmitHandler<IRegisterFormInputs> = async (data) => {
+    if (data.password !== data.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
     }
+
+    await signUpMutation.mutateAsync(data);
   };
 
   return (
@@ -72,8 +84,12 @@ export default function SignUp() {
           type="password"
           className="w-full max-w-sm"
         />
-        <Button type="submit" className="w-full max-w-sm cursor-pointer">
-          Register
+        <Button
+          type="submit"
+          className="w-full max-w-sm cursor-pointer"
+          disabled={signUpMutation.isPending}
+        >
+          {signUpMutation.isPending ? "Registering..." : "Register"}
         </Button>
       </form>
     </motion.div>

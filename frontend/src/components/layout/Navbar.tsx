@@ -11,6 +11,7 @@ import {
 } from "../ui/dropdown-menu";
 import api from "../../api/axios";
 import { useAuth } from "../../hooks/useAuth";
+import { useMutation } from "@tanstack/react-query";
 
 type NavbarProps = {
   user?: IUser | null;
@@ -18,19 +19,23 @@ type NavbarProps = {
 
 export default function Navbar({ user }: NavbarProps) {
   const navigate = useNavigate();
-
   const { setUser } = useAuth();
 
-  const handleLogout = async () => {
-    try {
-      await api.post("/auth/logout");
+  const logoutMutation = useMutation({
+    mutationFn: () => api.post("/auth/logout"),
+    onSuccess: () => {
       setUser(null);
       toast.success("Successfully logged out");
       navigate("/login");
-    } catch (error) {
+    },
+    onError: (error) => {
       toast.error("Logout failed. Please try again later.");
       console.error("Logout failed", error);
-    }
+    },
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
   };
 
   return (

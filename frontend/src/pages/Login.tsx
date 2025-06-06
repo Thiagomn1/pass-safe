@@ -7,6 +7,8 @@ import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
 
 interface ILoginFormInputs {
   username: string;
@@ -25,16 +27,26 @@ export default function Login() {
     }
   }, [user, navigate]);
 
-  const onSubmit: SubmitHandler<ILoginFormInputs> = async (data) => {
-    try {
-      const res = await api.post("/auth/login", data);
+  const loginMutation = useMutation({
+    mutationFn: (data: ILoginFormInputs) => api.post("/auth/login", data),
+    onSuccess: (res) => {
       setUser(res.data.user);
       toast.success("Successfully logged in. Redirecting...");
       navigate("/");
-    } catch (error) {
-      toast.error("Login failed. Check your credentials and try again.");
-      console.error("Login failed", error);
-    }
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        toast.error("Login failed. Check your credentials and try again.");
+        console.error("Login failed:", error.response?.data || error);
+      } else {
+        toast.error("An unknown error occurred during login.");
+        console.error("Unexpected error:", error);
+      }
+    },
+  });
+
+  const onSubmit: SubmitHandler<ILoginFormInputs> = async (data) => {
+    await loginMutation.mutateAsync(data);
   };
 
   return (
@@ -61,8 +73,12 @@ export default function Login() {
           type="password"
           className="w-full max-w-sm"
         />
-        <Button type="submit" className="w-full max-w-sm cursor-pointer">
-          Login
+        <Button
+          type="submit"
+          className="w-full max-w-sm cursor-pointer"
+          disabled={loginMutation.isPending}
+        >
+          {loginMutation.isPending ? "Logging in..." : "Login"}
         </Button>
       </form>
       <p className="pt-2 hover:text-blue-500 transition duration-150 cursor-pointer">

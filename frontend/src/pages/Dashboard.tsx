@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { X, Copy } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../api/axios";
@@ -14,6 +14,7 @@ import { Card, CardContent } from "../components/ui/card";
 import { Skeleton } from "../components/ui/skeleton";
 import { Input } from "../components/ui/input";
 import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface IPasswordData {
   site: string;
@@ -22,48 +23,42 @@ interface IPasswordData {
 }
 
 export default function Dashboard() {
-  const [passwords, setPasswords] = useState<IPasswordData[] | null>(null);
-  const [filtered, setFiltered] = useState<IPasswordData[] | null>(null);
   const [search, setSearch] = useState("");
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    api.get("/passwords").then((res) => {
-      setPasswords(res.data);
-      setFiltered(res.data);
-    });
-  }, []);
+  const { data: passwords, isLoading } = useQuery<IPasswordData[]>({
+    queryKey: ["passwords"],
+    queryFn: async () => {
+      const res = await api.get("/passwords");
+      return res.data;
+    },
+  });
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (!search.trim()) {
-        setFiltered(passwords);
-      } else {
-        const term = search.toLowerCase();
-        setFiltered(
-          passwords?.filter((p) => p.site.toLowerCase().includes(term)) ?? null
-        );
-      }
-    }, 500);
-
-    return () => clearTimeout(timeout);
-  }, [search, passwords]);
-
-  const handleDelete = async (idToDelete: string) => {
-    try {
-      await api.delete(`/passwords/${idToDelete}`);
-      const updated = passwords?.filter((p) => p.id !== idToDelete) ?? null;
-      setPasswords(updated);
-      setFiltered(updated);
-    } catch (err) {
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/passwords/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["passwords"] });
+      toast.success("Password deleted");
+    },
+    onError: () => {
       toast.error("Failed to delete password, please try again later.");
-      console.error("Failed to delete password:", err);
-    }
+    },
+  });
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id);
   };
 
   const copyToClipboard = (passwordToCopy: string) => {
     navigator.clipboard.writeText(passwordToCopy);
     toast.info("Password copied to clipboard!");
   };
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return passwords;
+    const term = search.toLowerCase();
+    return passwords?.filter((p) => p.site.toLowerCase().includes(term)) ?? [];
+  }, [search, passwords]);
 
   return (
     <motion.div
@@ -94,7 +89,7 @@ export default function Dashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {!filtered ? (
+              {isLoading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
                     <TableCell>
@@ -108,14 +103,14 @@ export default function Dashboard() {
                     </TableCell>
                   </TableRow>
                 ))
-              ) : filtered.length === 0 ? (
+              ) : filtered?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} className="text-center">
                     No matching passwords found.
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((p: IPasswordData) => (
+                filtered?.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell>
                       <button

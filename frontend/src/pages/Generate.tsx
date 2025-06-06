@@ -1,11 +1,13 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { motion } from "framer-motion";
+import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import api from "../api/axios";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import passwordGenerator from "../lib/password-generator";
 import { toast } from "sonner";
+
 interface IGenerateFormInputs {
   password: string;
   site: string;
@@ -30,14 +32,14 @@ export default function Generate() {
     setValue("password", password);
   };
 
-  const onSubmit: SubmitHandler<IGenerateFormInputs> = async (data) => {
-    try {
-      const { password, site } = data;
-
-      await api.post("/passwords", { password, site });
-      toast.success(`Password for ${data.site} saved successfully!`);
-      generatePassword(length ? length : 16);
-    } catch (error) {
+  const savePasswordMutation = useMutation({
+    mutationFn: (data: { password: string; site: string }) =>
+      api.post("/passwords", data),
+    onSuccess: (_, variables) => {
+      toast.success(`Password for ${variables.site} saved successfully!`);
+      generatePassword(length || 16);
+    },
+    onError: (error) => {
       if (axios.isAxiosError(error)) {
         toast.error(
           "Field validation failed. Check console for more information"
@@ -49,7 +51,14 @@ export default function Generate() {
         );
         console.error("Request failed:", error);
       }
-    }
+    },
+  });
+
+  const onSubmit: SubmitHandler<IGenerateFormInputs> = async (data) => {
+    await savePasswordMutation.mutateAsync({
+      password: data.password,
+      site: data.site,
+    });
   };
 
   return (
@@ -64,7 +73,7 @@ export default function Generate() {
       </h2>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="space-y-4 max-w-sm mx-auto"
+        className="space-y-4 max-w-asm mx-auto"
       >
         <div className="flex gap-2">
           <Input
