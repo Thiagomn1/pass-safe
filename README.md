@@ -4,21 +4,15 @@ This is a FullStack application that generates secure passwords for the requeste
 
 # Setup
 
-## Frontend
+## Setup Script
 
-1. Navigate to the frontend folder with `cd frontend`
-   
-2. Install dependencies with `npm install`
+1. In the root directory run the installation script with `./setup.sh`
 
-## Backend
+## Adding required .env
 
-1. Navigate to the backgend folder with `cd api`
-  
-2. Create the docker container for the MongoDB Database by running `docker-compose up -d` (The default user and password for the database is admin)
+1. Navigate to the backend directory with `cd api`
 
-3. Install the project dependencies with `npm install`
-
-4. Create a .env with the required variables:
+2. Create a .env with the required variables:
 
 ```
 MONGO_URI="mongodb://admin:admin@localhost:27017"
@@ -33,6 +27,4 @@ ENCRYPTION_SECRET=your_64_char_hex_secret_here
 
 ## Running the Project
 
-
-1. In the root folder run `npm install`
-2. Start the project with `npm run dev`
+1. In the root directory start the project with `npm run dev`
