@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { X, Copy } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../api/axios";
@@ -15,6 +15,7 @@ import { Skeleton } from "../components/ui/skeleton";
 import { Input } from "../components/ui/input";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "../components/ui/button";
 
 interface IPasswordData {
   site: string;
@@ -24,7 +25,14 @@ interface IPasswordData {
 
 export default function Dashboard() {
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   const { data: passwords, isLoading } = useQuery<IPasswordData[]>({
     queryKey: ["passwords"],
@@ -59,6 +67,16 @@ export default function Dashboard() {
     const term = search.toLowerCase();
     return passwords?.filter((p) => p.site.toLowerCase().includes(term)) ?? [];
   }, [search, passwords]);
+
+  const totalPages = useMemo(() => {
+    return filtered ? Math.ceil(filtered.length / itemsPerPage) : 1;
+  }, [filtered]);
+
+  const paginated = useMemo(() => {
+    if (!filtered) return [];
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
 
   return (
     <motion.div
@@ -110,7 +128,7 @@ export default function Dashboard() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered?.map((p) => (
+                paginated?.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell>
                       <button
@@ -139,6 +157,41 @@ export default function Dashboard() {
           </Table>
         </CardContent>
       </Card>
+      {filtered && filtered.length > itemsPerPage && (
+        <div className="flex justify-center mt-4 gap-2">
+          <Button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
+          >
+            Prev
+          </Button>
+          {Array.from({ length: totalPages }, (_, i) => {
+            const page = i + 1;
+            const isCurrent = currentPage === page;
+
+            return (
+              <Button
+                key={i}
+                onClick={() => setCurrentPage(page)}
+                disabled={isCurrent}
+                className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer ${
+                  isCurrent ? "opacity-50 pointer-events-none" : ""
+                }`}
+              >
+                {page}
+              </Button>
+            );
+          })}
+          <Button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </motion.div>
   );
 }
