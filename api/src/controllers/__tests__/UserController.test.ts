@@ -31,14 +31,27 @@ describe("UserController", () => {
       const res = mockResponse();
 
       (User.findOne as jest.Mock).mockResolvedValue(null);
+
       (bcrypt.hash as jest.Mock).mockResolvedValue("hashedpassword");
-      (User.prototype.save as jest.Mock) = jest.fn();
+
+      const mockUserInstance = {
+        username: "testuser",
+        password: "hashedpassword",
+        save: jest.fn().mockResolvedValue(true),
+      };
+
+      (User as unknown as jest.Mock).mockImplementation(() => mockUserInstance);
 
       await UserController.createUser(req, res, next);
 
+      expect(mockUserInstance.save).toHaveBeenCalled();
+
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
-        message: "User created successfully",
+        message: "User created and logged in successfully",
+        user: expect.objectContaining({
+          username: "testuser",
+        }),
       });
     });
 
@@ -77,7 +90,10 @@ describe("UserController", () => {
       await UserController.loginUser(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ message: "Login successful" });
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Login successful",
+        user: { _id: "123", username: "test", password: "hashedpass" },
+      });
     });
   });
 
@@ -101,12 +117,18 @@ describe("UserController", () => {
 describe("getMe", () => {
   it("should return the user if found", async () => {
     const req = {
-      user: { userId: "123" },
-    } as unknown as Request;
+      cookies: { token: "fake-token" },
+    } as any;
+
     const res = mockResponse();
+    const next = jest.fn();
+
+    (jwt.verify as jest.Mock).mockReturnValue({ userId: "user123" });
+
+    const mockUser = { username: "test" };
 
     (User.findById as jest.Mock).mockReturnValue({
-      select: jest.fn().mockResolvedValue({ username: "test" }),
+      select: jest.fn().mockResolvedValue(mockUser),
     });
 
     await UserController.getMe(req, res, next);
@@ -116,9 +138,12 @@ describe("getMe", () => {
 
   it("should return 404 if user not found", async () => {
     const req = {
-      user: { userId: "123" },
-    } as unknown as Request;
+      cookies: { token: "fake-token" },
+    } as any;
     const res = mockResponse();
+    const next = jest.fn();
+
+    (jwt.verify as jest.Mock).mockReturnValue({ userId: "123" });
 
     (User.findById as jest.Mock).mockReturnValue({
       select: jest.fn().mockResolvedValue(null),
