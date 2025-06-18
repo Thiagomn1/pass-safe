@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import { useVault } from "../context/vault/useVault";
 
 interface ILoginFormInputs {
   username: string;
@@ -19,6 +20,7 @@ export default function Login() {
   const { register, handleSubmit } = useForm<ILoginFormInputs>();
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
+  const { unlockVault } = useVault();
 
   useEffect(() => {
     if (user) {
@@ -32,6 +34,7 @@ export default function Login() {
     onSuccess: (res) => {
       setUser(res.data.user);
       toast.success("Successfully logged in. Redirecting...");
+      unlockVault();
       navigate("/");
     },
     onError: (error) => {

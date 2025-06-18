@@ -108,6 +108,41 @@ class UserController {
     }
   };
 
+  static unlockVault = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { password } = req.body;
+    console.log(password)
+
+    const token = req.cookies.token;
+    if (!token) {
+     res.status(401).json({ error: "Not authenticated" });
+     return
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      res.status(401).json({ error: "Incorrect password" });
+      return
+    }
+
+    res.status(200).json({ message: "Vault unlocked" });
+  } catch (error) {
+    next(error);
+  }
+};
+
   static logoutUser = async (
     req: Request,
     res: Response,

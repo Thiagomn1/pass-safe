@@ -12,6 +12,7 @@ import {
 import api from "../../api/axios";
 import { useAuth } from "../../hooks/useAuth";
 import { useMutation } from "@tanstack/react-query";
+import { useVault } from "../../context/vault/useVault";
 
 type NavbarProps = {
   user?: IUser | null;
@@ -20,12 +21,14 @@ type NavbarProps = {
 export default function Navbar({ user }: NavbarProps) {
   const navigate = useNavigate();
   const { setUser } = useAuth();
+  const { lockVault } = useVault();
 
   const logoutMutation = useMutation({
     mutationFn: () => api.post("/auth/logout"),
     onSuccess: () => {
       setUser(null);
       toast.success("Successfully logged out");
+      lockVault();
       navigate("/login");
     },
     onError: (error) => {
