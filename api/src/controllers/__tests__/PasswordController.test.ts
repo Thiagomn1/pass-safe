@@ -43,7 +43,7 @@ describe("PasswordController", () => {
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith([
-        { site: "gmail.com", password: "decrypted" },
+        { id: "1", site: "gmail.com", password: "decrypted" },
       ]);
     });
 
@@ -73,50 +73,68 @@ describe("PasswordController", () => {
     });
   });
 
-  describe("generatePassword", () => {
-    it("should create a password and return it", async () => {
+  describe("savePassword", () => {
+    it("should save a password and return it", async () => {
       const req = {
         user: { userId: "123" },
-        body: { length: 10, site: "example.com" },
+        body: { site: "example.com", password: "plainPassword" },
       } as any;
+
       const res = mockResponse();
 
+      const savedPasswords: any[] = [];
+
       const fakeUser = {
-        savedPasswords: [],
+        savedPasswords,
         save: jest.fn(),
       };
 
       (User.findById as jest.Mock).mockResolvedValue(fakeUser);
-      (passwordGenerator as jest.Mock).mockReturnValue("genPassword");
       (encryptPassword as jest.Mock).mockReturnValue("encPassword");
 
-      await PasswordController.generatePassword(req, res, next);
+      await PasswordController.savePassword(req, res, next);
 
       expect(fakeUser.savedPasswords).toEqual([
         { site: "example.com", password: "encPassword" },
       ]);
+      expect(fakeUser.save).toHaveBeenCalled();
+
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
+        id: undefined,
         site: "example.com",
-        password: "genPassword",
+        password: "plainPassword",
       });
     });
 
-    it("should call next with ZodError on invalid length", async () => {
+    it("should return 404 if user not found", async () => {
       const req = {
-        body: { length: -1, site: "example.com" },
         user: { userId: "123" },
+        body: { site: "example.com", password: "password" },
       } as any;
-
       const res = mockResponse();
-      const next = jest.fn();
 
-      await PasswordController.generatePassword(req, res, next);
+      (User.findById as jest.Mock).mockResolvedValue(null);
+
+      await PasswordController.savePassword(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+    });
+
+    it("should call next with ZodError on invalid input", async () => {
+      const req = {
+        user: { userId: "123" },
+        body: { site: "", password: "" },
+      } as any;
+      const res = mockResponse();
+
+      await PasswordController.savePassword(req, res, next);
 
       expect(next).toHaveBeenCalled();
       const errorArg = next.mock.calls[0][0];
-      expect(errorArg).toHaveProperty("issues");
       expect(errorArg.name).toBe("ZodError");
+      expect(errorArg).toHaveProperty("issues");
     });
   });
 
@@ -169,18 +187,28 @@ describe("PasswordController", () => {
     it("should update and return the new password", async () => {
       const req = {
         user: { userId: "123" },
-        body: { site: "netflix", length: 12 },
+        params: { id: "pwd1" },
+        body: { password: "newPasswordPlain" },
       } as any;
+
       const res = mockResponse();
 
-      const passwordEntry = { site: "netflix.com", password: "oldEnc" };
+      const passwordEntry = {
+        _id: "pwd1",
+        site: "netflix.com",
+        password: "oldEnc",
+      };
+
+      const savedPasswords = {
+        id: (id: string) => (id === passwordEntry._id ? passwordEntry : null),
+      };
+
       const fakeUser = {
-        savedPasswords: [passwordEntry],
+        savedPasswords,
         save: jest.fn(),
       };
 
       (User.findById as jest.Mock).mockResolvedValue(fakeUser);
-      (passwordGenerator as jest.Mock).mockReturnValue("newPassword");
       (encryptPassword as jest.Mock).mockReturnValue("newEncrypted");
 
       await PasswordController.updateSitePassword(req, res, next);
@@ -190,25 +218,51 @@ describe("PasswordController", () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         site: "netflix.com",
-        newPassword: "newPassword",
+        message: "Password updated successfully.",
       });
     });
 
-    it("should return 404 if site not found", async () => {
+    it("should return 404 if password entry not found", async () => {
       const req = {
         user: { userId: "123" },
-        body: { site: "reddit", length: 10 },
+        params: { id: "notfound" },
+        body: { password: "newPass" },
       } as any;
       const res = mockResponse();
 
-      (User.findById as jest.Mock).mockResolvedValue({
-        savedPasswords: [],
+      const savedPasswords = {
+        id: (_id: string) => null,
+      };
+
+      const fakeUser = {
+        savedPasswords,
         save: jest.fn(),
-      });
+      };
+
+      (User.findById as jest.Mock).mockResolvedValue(fakeUser);
 
       await PasswordController.updateSitePassword(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Password entry not found.",
+      });
+    });
+
+    it("should return 404 if user not found", async () => {
+      const req = {
+        user: { userId: "123" },
+        params: { id: "pwd1" },
+        body: { password: "newPass" },
+      } as any;
+      const res = mockResponse();
+
+      (User.findById as jest.Mock).mockResolvedValue(null);
+
+      await PasswordController.updateSitePassword(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
     });
   });
 
@@ -224,39 +278,40 @@ describe("PasswordController", () => {
       jest.clearAllMocks();
     });
 
-    it("should delete a password for the given site", async () => {
-      const mockSave = jest.fn();
-      const pull = jest.fn();
+    it("should delete a password for the given id", async () => {
+      const pullMock = jest.fn();
+      const saveMock = jest.fn();
 
-      const savedPasswords = [
-        { _id: "abc123", site: "netflix.com", password: "encrypted" },
-        { _id: "def456", site: "gmail.com", password: "encrypted2" },
-      ];
-
-      (savedPasswords as any).pull = jest.fn();
+      const savedPasswords = {
+        id: (id: string) =>
+          id === "abc123"
+            ? { _id: "abc123", site: "netflix.com", password: "encrypted" }
+            : null,
+        pull: pullMock,
+      };
 
       const mockUser = {
-        savedPasswords: Object.assign([...savedPasswords], { pull }),
-        save: mockSave,
+        savedPasswords,
+        save: saveMock,
       };
 
       (User.findById as jest.Mock).mockResolvedValue(mockUser);
 
       const req = {
-        user: { userId: "123" },
-        params: { site: "netflix" },
+        user: { userId: "user123" },
+        params: { id: "abc123" },
       } as any;
 
       const res = mockResponse();
 
       await PasswordController.deleteSitePassword(req, res, next);
 
-      expect(User.findById).toHaveBeenCalledWith("123");
-      expect(pull).toHaveBeenCalledWith("abc123");
-      expect(mockSave).toHaveBeenCalled();
+      expect(User.findById).toHaveBeenCalledWith("user123");
+      expect(pullMock).toHaveBeenCalledWith("abc123");
+      expect(saveMock).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
-        message: "Password for 'netflix' deleted.",
+        message: "Password entry deleted.",
       });
     });
 
@@ -265,7 +320,7 @@ describe("PasswordController", () => {
 
       const req = {
         user: { userId: "123" },
-        params: { site: "netflix" },
+        params: { id: "someId" },
       } as any;
 
       const res = mockResponse();
@@ -276,15 +331,14 @@ describe("PasswordController", () => {
       expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
     });
 
-    it("should return 404 if site not found", async () => {
-      const savedPasswords = [
-        { _id: "def456", site: "gmail.com", password: "encrypted2" },
-      ];
-
-      (savedPasswords as any).pull = jest.fn();
+    it("should return 404 if password entry not found", async () => {
+      const savedPasswords = {
+        id: () => null,
+        pull: jest.fn(),
+      };
 
       const mockUser = {
-        savedPasswords: savedPasswords as any,
+        savedPasswords,
         save: jest.fn(),
       };
 
@@ -292,7 +346,7 @@ describe("PasswordController", () => {
 
       const req = {
         user: { userId: "123" },
-        params: { site: "netflix" },
+        params: { id: "nonexistentId" },
       } as any;
 
       const res = mockResponse();
@@ -301,7 +355,7 @@ describe("PasswordController", () => {
 
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({
-        error: "Password for site not found.",
+        error: "Password entry not found.",
       });
     });
 

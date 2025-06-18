@@ -9,6 +9,7 @@ const routes = express.Router();
 routes.get("/me", authenticate, UserController.getMe);
 routes.post("/signup", validate(userSchema), UserController.createUser);
 routes.post("/login", validate(userSchema), UserController.loginUser);
+routes.post("/unlock-vault", UserController.unlockVault);
 routes.post("/logout", authenticate, UserController.logoutUser);
 routes.patch("/update", authenticate, UserController.updateUser);
 
