@@ -26,6 +26,13 @@ export const userParseSchema = z.object({
     .max(20, "Password must be at most 20 characters"),
 });
 
+export const unlockParseSchema = z.object({
+  password: z
+    .string()
+    .min(4, "Password must be at least 6 characters")
+    .max(20, "Password must be at most 20 characters"),
+});
+
 export const updateUserParseSchema = z
   .object({
     username: z

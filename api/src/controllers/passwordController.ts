@@ -7,6 +7,8 @@ import {
   deleteSitePasswordParseSchema,
   generatePasswordParseSchema,
   savePasswordParseSchema,
+  siteParamParseSchema,
+  siteParamSchema,
   updatePasswordBodySchema,
   updatePasswordIdSchema,
 } from "../validation/passwordSchemas";
@@ -40,9 +42,13 @@ class PasswordController {
     }
   };
 
-  static getSitePassword = async (req: AuthenticatedRequest, res: Response) => {
+  static getSitePassword = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const siteQuery = req.params.site;
+      const { site: siteQuery } = siteParamParseSchema.parse(req.params);
       const user = await User.findById(req?.user?.userId)
         .select("savedPasswords")
         .lean();
@@ -63,7 +69,7 @@ class PasswordController {
 
       res.status(200).json(foundPassword);
     } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
+      next(error);
     }
   };
 

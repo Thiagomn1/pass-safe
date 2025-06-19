@@ -156,7 +156,7 @@ describe("PasswordController", () => {
         lean: jest.fn().mockResolvedValue({ savedPasswords }),
       });
 
-      await PasswordController.getSitePassword(req, res);
+      await PasswordController.getSitePassword(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
@@ -177,9 +177,24 @@ describe("PasswordController", () => {
         lean: jest.fn().mockResolvedValue({ savedPasswords: [] }),
       });
 
-      await PasswordController.getSitePassword(req, res);
+      await PasswordController.getSitePassword(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(404);
+    });
+
+    it("should call next with ZodError on invalid input", async () => {
+      const req = {
+        user: { userId: "123" },
+        params: { site: "" },
+      } as any;
+      const res = mockResponse();
+
+      await PasswordController.getSitePassword(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const errorArg = next.mock.calls[0][0];
+      expect(errorArg.name).toBe("ZodError");
+      expect(errorArg).toHaveProperty("issues");
     });
   });
 
@@ -263,6 +278,22 @@ describe("PasswordController", () => {
 
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: "User not found" });
+    });
+
+    it("should call next with ZodError on invalid input", async () => {
+      const req = {
+        user: { userId: "123" },
+        params: { id: "" },
+        body: { password: "" },
+      } as any;
+      const res = mockResponse();
+
+      await PasswordController.updateSitePassword(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const errorArg = next.mock.calls[0][0];
+      expect(errorArg.name).toBe("ZodError");
+      expect(errorArg).toHaveProperty("issues");
     });
   });
 
@@ -373,6 +404,21 @@ describe("PasswordController", () => {
       const errorArg = next.mock.calls[0][0];
       expect(errorArg).toHaveProperty("issues");
       expect(errorArg.name).toBe("ZodError");
+    });
+
+    it("should call next with ZodError on invalid input", async () => {
+      const req = {
+        user: { userId: "123" },
+        params: { id: "" },
+      } as any;
+      const res = mockResponse();
+
+      await PasswordController.deleteSitePassword(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const errorArg = next.mock.calls[0][0];
+      expect(errorArg.name).toBe("ZodError");
+      expect(errorArg).toHaveProperty("issues");
     });
   });
 });

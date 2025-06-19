@@ -22,6 +22,10 @@ export const siteParamSchema = z.object({
   }),
 });
 
+export const siteParamParseSchema = z.object({
+  site: z.string().min(6),
+});
+
 export const savePasswordSchema = z.object({
   body: z.object({
     password: z.string().min(8),
